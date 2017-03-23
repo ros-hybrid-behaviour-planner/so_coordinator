@@ -14,7 +14,7 @@ from so_data.chemotaxis import ChemotaxisBalch
 class SOAgent(object):
 
     def __init__(self, turtle_number, min_activation, max_activation,
-                 min_distance, max_distance, clock_topic, example, planner_prefix=''):
+                 min_distance, max_distance, clock_topic, planner_prefix=''):
         # id
         self.pose_frame = 'robot'
         self.id = self.pose_frame + str(turtle_number)
