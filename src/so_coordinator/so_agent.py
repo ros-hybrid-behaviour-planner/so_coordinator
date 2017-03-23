@@ -7,13 +7,11 @@ from rhbp_selforga.conditions import VectorBoolCondition, GoalBoolCondition, \
     VectorDistCondition
 from rhbp_selforga.gradientsensor import GradientSensor, SENSOR
 from so_data.sobuffer import SoBuffer
-from so_data.chemotaxis import ChemotaxisBalch
-
 
 
 class SOAgent(object):
 
-    def __init__(self, turtle_number, min_activation, max_activation,
+    def __init__(self, setting, turtle_number, min_activation, max_activation,
                  min_distance, max_distance, clock_topic, planner_prefix=''):
         # id
         self.pose_frame = 'robot'
@@ -22,13 +20,25 @@ class SOAgent(object):
         # topics
         motion_topic = 'turtle' + str(turtle_number) + '/cmd_vel'
 
-
         # CHEMOTAXIS
-        self.chem_buffer = SoBuffer(id=self.id, pose_frame=self.pose_frame)
-        self.chem = ChemotaxisBalch(self.chem_buffer, moving=False, static=True)
+
+        # create buffer
+        self.buffer = {}
+        buffer = setting.get('buffer')
+        for b in buffer.keys():
+            self.buffer[b] = SoBuffer(id=self.id, pose_frame=self.pose_frame,
+                                      **buffer[b])
+
+        # create mechanisms
+        self.mechanisms = {}
+        mechanisms = setting.get('mechanism')
+        for mechanism in mechanisms.keys():
+            self.mechanisms[mechanism] = mechanisms[mechanism][0](
+                self.buffer[mechanisms[mechanism][1]],
+                **mechanisms[mechanism][2])
 
         # attractive gradient within view
-        self.goal_sensor = GradientSensor('goalSensor' + self.id, self.chem,
+        self.goal_sensor = GradientSensor('goalSensor' + self.id, self.mechanisms['chem'],
                                           clock_topic)
 
         self.bool_activator = BooleanActivator()
@@ -40,7 +50,7 @@ class SOAgent(object):
         # attractive gradient reached
         self.goal_reached_sensor = GradientSensor(
             'goalReachedSensor' + self.id,
-            self.chem, clock_topic,
+            self.mechanisms['chem'], clock_topic,
             sensor_type=SENSOR.GOAL)
 
         self.goal_reached_condition = GoalBoolCondition(
@@ -49,7 +59,7 @@ class SOAgent(object):
 
         # distance based activation
         self.distance_sensor = GradientSensor('distanceSensor' + self.id,
-                                         self.chem, clock_topic,
+                                         self.mechanisms['chem'], clock_topic,
                                          sensor_type=SENSOR.GOAL)
 
         self.distance_activator = LinearActivator(min_distance,
@@ -66,7 +76,7 @@ class SOAgent(object):
         self.distance_condition.optional = True
 
         # Behaviour
-        gradient_behaviour = MoveBehaviour(mechanism=self.chem,
+        gradient_behaviour = MoveBehaviour(mechanism=self.mechanisms['chem'],
                                             distance_condition=
                                             self.distance_condition,
                                             bool_p_condition=[
