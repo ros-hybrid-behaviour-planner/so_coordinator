@@ -1,18 +1,18 @@
-
-from behaviour_components.goals import GoalBase
+from so_data.sobuffer import SoBuffer
 from behaviour_components.conditions import Negation
+from so_data.chemotaxis import ChemotaxisBalch
 from behaviour_components.activators import LinearActivator, BooleanActivator
-from rhbp_selforga.behaviours import MoveBehaviour
+from rhbp_selforga.gradientsensor import GradientSensor, SENSOR
 from rhbp_selforga.conditions import VectorBoolCondition, GoalBoolCondition, \
     VectorDistCondition
-from rhbp_selforga.gradientsensor import GradientSensor, SENSOR
-from so_data.sobuffer import SoBuffer
+from rhbp_selforga.behaviours import MoveBehaviour
+from behaviour_components.goals import GoalBase
+from behaviour_components.conditions import Negation
 
 
 class SOAgent(object):
 
-    def __init__(self, setting, turtle_number, min_activation, max_activation,
-                 min_distance, max_distance, clock_topic, planner_prefix=''):
+    def __init__(self, setting, turtle_number, clock_topic, planner_prefix=''):
         # id
         self.pose_frame = 'robot'
         self.id = self.pose_frame + str(turtle_number)
@@ -31,69 +31,86 @@ class SOAgent(object):
 
         # create mechanisms
         self.mechanisms = {}
-        mechanisms = setting.get('mechanism')
-        for mechanism in mechanisms.keys():
-            self.mechanisms[mechanism] = mechanisms[mechanism][0](
-                self.buffer[mechanisms[mechanism][1]],
-                **mechanisms[mechanism][2])
+        mechanisms = setting.get('mechanisms')
+        for m in mechanisms.keys():
+            self.mechanisms[m] = globals()[mechanisms[m][0]](
+                self.buffer[mechanisms[m][1]], **mechanisms[m][2])
 
-        # attractive gradient within view
-        self.goal_sensor = GradientSensor('goalSensor' + self.id, self.mechanisms['chem'],
-                                          clock_topic)
+        # create activator
+        self.activators = {}
+        activators = setting.get('activators')
+        for a in activators.keys():
+            self.activators[a] = globals()[activators[a][0]](**activators[a][1])
 
-        self.bool_activator = BooleanActivator()
+        # create sensor
+        self.sensors = {}
+        sensors = setting.get('sensors')
+        for s in sensors.keys():
+            self.sensors[s] = globals()[sensors[s][0]](s + self.id + 'sensor',
+                                            self.mechanisms[sensors[s][1]],
+                                            **sensors[s][2])
 
-        self.goal_condition = VectorBoolCondition(self.goal_sensor,
-                                             self.bool_activator,
-                                             name= self.id + "GoalCondition")
+        # create condition
+        self.conditions = {}
+        conditions = setting.get('conditions')
+        for c in conditions.keys():
+            self.conditions[c] = globals()[conditions[c][0]](self.sensors[conditions[c][1]],
+                                                  self.activators[conditions[c][2]],
+                                                  name=c+self.id+'condition')
+            if conditions[c][3]:
+                self.conditions[c].optional = True
 
-        # attractive gradient reached
-        self.goal_reached_sensor = GradientSensor(
-            'goalReachedSensor' + self.id,
-            self.mechanisms['chem'], clock_topic,
-            sensor_type=SENSOR.GOAL)
+        # create behaviours
+        self.behaviours = {}
+        behaviours = setting.get('behaviours')
+        for b in behaviours.keys():
+            # rework conditions
+            for p in behaviours[b][2].keys():
+                if isinstance(behaviours[b][2][p], list):
+                    for e in range(0, len(behaviours[b][2][p])):
+                        behaviours[b][2][p][e] = self.conditions[behaviours[b][2][p][e]]
+                else:
+                    behaviours[b][2][p] = self.conditions[behaviours[b][2][p]]
 
-        self.goal_reached_condition = GoalBoolCondition(
-            self.goal_reached_sensor, self.bool_activator,
-            name=self.id + "GoalReachedCondition")
-
-        # distance based activation
-        self.distance_sensor = GradientSensor('distanceSensor' + self.id,
-                                         self.mechanisms['chem'], clock_topic,
-                                         sensor_type=SENSOR.GOAL)
-
-        self.distance_activator = LinearActivator(min_distance,
-                                             max_distance,
-                                             min_activation,
-                                             max_activation, self.id +
-                                             "DistanceActivator")
-
-        self.distance_condition = VectorDistCondition(self.distance_sensor,
-                                                 self.distance_activator,
-                                                 name=self.id +
-                                                      "DistanceCondition")
-
-        self.distance_condition.optional = True
-
-        # Behaviour
-        gradient_behaviour = MoveBehaviour(mechanism=self.mechanisms['chem'],
-                                            distance_condition=
-                                            self.distance_condition,
-                                            bool_p_condition=[
-                                                self.goal_reached_condition],
-                                            motion_topic=motion_topic,
-                                            name='chemotaxisBehaviour' +
-                                                 self.id,
-                                           plannerPrefix=planner_prefix)
+            self.behaviours[b] = globals()[behaviours[b][0]](name=b+self.id+'behaviour',
+                                                  planner_prefix=planner_prefix,
+                                                  motion_topic=motion_topic,
+                                                  mechanism=self.mechanisms[behaviours[b][1]],
+                                                  **behaviours[b][2])
 
         # add preconditions
-        gradient_behaviour.addPrecondition(Negation(
-            self.goal_reached_condition))
-        gradient_behaviour.addPrecondition(self.distance_condition)
-        gradient_behaviour.addPrecondition(self.goal_condition)
+        preconds = setting.get('preconditions')
+        for p in preconds.keys():
+            for e in preconds[p]:
+                if e[0]=='None':
+                    self.behaviours[p].addPrecondition(self.conditions[e[1]])
+                else:
+                    self.behaviours[p].addPrecondition(globals()[e[0]](self.conditions[e[1]]))
 
+        # create goals
+        self.goals = {}
+        goals = setting.get('goals')
+        for g in goals.keys():
+            conds = []
+            for c in goals[g][2]:
+                if not c[0]:
+                    conds.append(self.conditions[c[1]])
+                else:
+                    if isinstance(c[1], list):
+                        subconds = []
+                        for s in c[1]:
+                            if s[0] == 'None':
+                                subconds.append(self.conditions[s[1]])
+                            else:
+                                subconds.append(s[0](self.conditions[s[1]]))
+                                #TODO subconds verwerten
+                    else:
+                        if c[0] == 'None':
+                            conds.append(self.conditions[c[1]])
+                        else:
+                            conds.append(globals()[c[0]](self.conditions[c[1]]))
 
-        # Goal: reach attractive gradient
-        self.goal = GoalBase("goal" + self.id, permanent=False,
-                             conditions=[self.goal_reached_condition],
-                             plannerPrefix=planner_prefix)
+            self.goals[g] = globals()[goals[g][0]](name=g+self.id+'goal',
+                                       plannerPrefix=planner_prefix,
+                                       permanent=goals[g][1],
+                                       conditions=conds)

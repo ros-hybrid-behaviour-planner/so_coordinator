@@ -9,6 +9,15 @@ Module including self-organization coordinator
 from behaviour_components.network_behavior import NetworkBehavior
 from behaviour_components.managers import Manager
 from so_data.chemotaxis import ChemotaxisBalch
+from behaviour_components.activators import LinearActivator, BooleanActivator
+from rhbp_selforga.gradientsensor import GradientSensor, SENSOR
+from rhbp_selforga.conditions import VectorBoolCondition, GoalBoolCondition, \
+    VectorDistCondition
+from rhbp_selforga.behaviours import MoveBehaviour
+from behaviour_components.goals import GoalBase
+from behaviour_components.conditions import Negation
+
+import yaml
 
 
 class SoCoordinator(NetworkBehavior):
@@ -36,13 +45,11 @@ class SoCoordinator(NetworkBehavior):
                                             only_running_for_deciding_interruptible,
                                             **kwargs)
 
-        behaviours = class_name({
-            'buffer': {'chem': {}},
-            'mechanism': {'chem': [ChemotaxisBalch, 'chem', {'moving': False, 'static': True}]},
-        'activator': {},
-        'sensor': {},
-        'condition': {},
-        'behaviour': {},
-        'goal': {}},
-            turtle_number, min_activation, max_activation,
-                                min_distance, max_distance, clock_topic) #, planner_prefix=self.manager_name)
+        with open("/home/mrsminirobot/Desktop/Masterarbeit/SoCTest/src/so_coordinator/src/so_coordinator/so_knowledge.yaml", 'r') as stream:
+            try:
+                data = yaml.load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+
+        behaviours = class_name(data['ReachGoal'],
+            turtle_number, None) #, planner_prefix=self.manager_name)

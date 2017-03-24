@@ -1,3 +1,15 @@
-ReachGoal: {mechanism: ChemotaxisBalch, buffer: SoBuffer, behaviour: MoveBehaviour, }
-Patrolling: {c: 3, d: 4}
-Formation: FlockingRey
+ReachGoal: {
+  buffer: {chem: {} },
+  mechanisms: {chem: [ChemotaxisBalch, 'chem', {moving: False, static: True}]},
+  activators: {'bool': [BooleanActivator, {}],
+                           'lin': [LinearActivator, {'zeroActivationValue': 2.0, 'fullActivationValue': 0.0, 'minActivation': 0.0, 'maxActivation': 1.0}]},
+  sensors: {'goal': [GradientSensor, 'chem', {}],
+            'goal_reached': [GradientSensor, 'chem', {'sensor_type': SENSOR.GOAL}],
+            'dist': [GradientSensor, 'chem', {'sensor_type': SENSOR.GOAL}]},
+  conditions: {'goal': [VectorBoolCondition, 'goal', 'bool', False],
+               'goal_reached': [GoalBoolCondition, 'goal_reached', 'bool', False],
+               'dist': [VectorDistCondition, 'dist', 'lin', True]},
+  behaviours: {'chem': [MoveBehaviour, 'chem', {'distance_condition': 'dist', 'bool_p_condition': ['goal_reached']}]},
+  preconditions: {'chem': [[Negation, 'goal_reached'], [None, 'dist'], [None, 'goal']]},
+  goals: {'chem': [GoalBase, False, [[None, 'goal_reached']]]}
+}
