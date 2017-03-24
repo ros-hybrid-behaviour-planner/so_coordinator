@@ -4,12 +4,12 @@ ReachGoal: {
   activators: {'bool': [BooleanActivator, {}],
                            'lin': [LinearActivator, {'zeroActivationValue': 2.0, 'fullActivationValue': 0.0, 'minActivation': 0.0, 'maxActivation': 1.0}]},
   sensors: {'goal': [GradientSensor, 'chem', {}],
-            'goal_reached': [GradientSensor, 'chem', {'sensor_type': SENSOR.GOAL}],
-            'dist': [GradientSensor, 'chem', {'sensor_type': SENSOR.GOAL}]},
+            'goal_reached': [GradientSensor, 'chem', {'sensor_type': 1}],
+            'dist': [GradientSensor, 'chem', {'sensor_type': 1}]},
   conditions: {'goal': [VectorBoolCondition, 'goal', 'bool', False],
                'goal_reached': [GoalBoolCondition, 'goal_reached', 'bool', False],
                'dist': [VectorDistCondition, 'dist', 'lin', True]},
-  behaviours: {'chem': [MoveBehaviour, 'chem', {'distance_condition': 'dist', 'bool_p_condition': ['goal_reached']}]},
+  behaviours: {'chem': [MoveBehaviour, 'chem', {'distance_condition': [None, 'dist'], 'bool_p_condition': [[None, 'goal_reached']]}]},
   preconditions: {'chem': [[Negation, 'goal_reached'], [None, 'dist'], [None, 'goal']]},
   goals: {'chem': [GoalBase, False, [[None, 'goal_reached']]]}
 }
