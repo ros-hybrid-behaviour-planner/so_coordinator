@@ -9,7 +9,7 @@ ReachGoal: {
   conditions: {'goal': [VectorBoolCondition, 'goal', 'bool', False],
                'goal_reached': [GoalBoolCondition, 'goal_reached', 'bool', False],
                'dist': [VectorDistCondition, 'dist', 'lin', True]},
-  behaviours: {'chem': [MoveBehaviour, 'chem', {'distance_condition': [None, 'dist'], 'bool_p_condition': [[None, 'goal_reached']]}]},
+  behaviours: {'chem': [MoveBehaviour, 'chem', {'effects': [[[None, 'dist'], -1.0, float], [[None, 'goal_reached'], 1.0, bool]]}]},
   preconditions: {'chem': [[Negation, 'goal_reached'], [None, 'dist'], [None, 'goal']]},
   goals: {'chem': [GoalBase, False, [[None, 'goal_reached']]]}
 }

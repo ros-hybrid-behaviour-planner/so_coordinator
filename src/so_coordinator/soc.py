@@ -6,18 +6,10 @@ Created on 22.03.2017
 Module including self-organization coordinator
 """
 
-from behaviour_components.network_behavior import NetworkBehavior
-from behaviour_components.managers import Manager
-from so_data.chemotaxis import ChemotaxisBalch
-from behaviour_components.activators import LinearActivator, BooleanActivator
-from rhbp_selforga.gradientsensor import GradientSensor, SENSOR
-from rhbp_selforga.conditions import VectorBoolCondition, GoalBoolCondition, \
-    VectorDistCondition
-from rhbp_selforga.behaviours import MoveBehaviour
-from behaviour_components.goals import GoalBase
-from behaviour_components.conditions import Negation
-
 import yaml
+import os
+import rospy
+from behaviour_components.network_behavior import NetworkBehavior
 
 
 class SoCoordinator(NetworkBehavior):
@@ -27,29 +19,46 @@ class SoCoordinator(NetworkBehavior):
     problems
     """
 
-    def __init__(self, effect, class_name=None, name='SoCoordinator', requires_execution_steps=False,
-                 only_running_for_deciding_interruptible=
-                 Manager.USE_ONLY_RUNNING_BEHAVIOURS_FOR_INTERRUPTIBLE_DEFAULT_VALUE,
-                 turtle_number=1, min_activation=0, max_activation=1,
-                 min_distance=0, max_distance=1, clock_topic=None,
+    # requires execution steps = True is super important!
+    def __init__(self, effects, class_name=None, id=1, so_goal='ReachGoal',
+                 expert_knowledge='so_knowledge.yaml',
+                 name='SoCoordinator',
+                 requires_execution_steps=True,
                  **kwargs):
+        """
+        initialization
+        :param effect:
+        :param class_name:
+        :param id:
+        :param so_goal:
+        :param expert_knowledge:
+        :param name:
+        :param requires_execution_steps: whether the execution steps should be caused from the parent manager or not.
+                If not, the step method must be called manually
+        :param kwargs:
+        """
 
         self.name = name
 
         self.manager_name = name + NetworkBehavior.MANAGER_POSTFIX
 
-        super(SoCoordinator, self).__init__(effects=effect, name=self.name,
+        super(SoCoordinator, self).__init__(effects=effects, name=self.name,
                                             requires_execution_steps=
                                             requires_execution_steps,
-                                            only_running_for_deciding_interruptible=
-                                            only_running_for_deciding_interruptible,
                                             **kwargs)
 
-        with open("/home/mrsminirobot/Desktop/Masterarbeit/SoCTest/src/so_coordinator/src/so_coordinator/so_knowledge.yaml", 'r') as stream:
+        data = None
+
+        with open(os.path.join(os.path.dirname(__file__), expert_knowledge),
+                  'r') as stream:
             try:
                 data = yaml.load(stream)
             except yaml.YAMLError as exc:
                 print(exc)
 
-        behaviours = class_name(data['ReachGoal'],
-            turtle_number, None) #, planner_prefix=self.manager_name)
+        # create
+        if data:
+            behaviours = class_name(data[so_goal], id,
+                                    planner_prefix=self.get_manager_prefix())
+        else:
+            rospy.logerr("SO behaviour creation in " + self.name + " failed.")

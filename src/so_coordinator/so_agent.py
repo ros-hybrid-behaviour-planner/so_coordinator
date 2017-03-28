@@ -3,7 +3,7 @@ from so_mapping import SO_MAPPING
 
 class SOAgent(object):
 
-    def __init__(self, setting, turtle_number, clock_topic, planner_prefix=''):
+    def __init__(self, setting, turtle_number, planner_prefix=''):
         # id
         self.pose_frame = 'robot'
         self.id = self.pose_frame + str(turtle_number)
@@ -17,8 +17,10 @@ class SOAgent(object):
         self.buffer = {}
         buffer = setting.get('buffer')
         for b in buffer.keys():
-            self.buffer[b] = SO_MAPPING.get('SoBuffer')(id=self.id, pose_frame=self.pose_frame,
-                                      **buffer[b])
+            self.buffer[b] = SO_MAPPING.get('SoBuffer')(id=self.id,
+                                                        pose_frame=
+                                                        self.pose_frame,
+                                                        **buffer[b])
 
         # create mechanisms
         self.mechanisms = {}
@@ -31,27 +33,30 @@ class SOAgent(object):
         self.activators = {}
         activators = setting.get('activators')
         for a in activators.keys():
-            self.activators[a] = SO_MAPPING.get(activators[a][0])(**activators[a][1])
+            self.activators[a] = SO_MAPPING.get(activators[a][0])(
+                **activators[a][1])
 
         # create sensor
         self.sensors = {}
         sensors = setting.get('sensors')
         for s in sensors.keys():
             if sensors[s][0] == 'GradientSensor':
-                self.sensors[s] = SO_MAPPING.get(sensors[s][0])(s + self.id + 'sensor',
+                self.sensors[s] = SO_MAPPING.get(sensors[s][0])(s + self.id +
+                                                                'sensor',
                                                 self.mechanisms[sensors[s][1]],
                                                 **sensors[s][2])
             else:
-                self.sensors[s] = SO_MAPPING.get(sensors[s][0])(s + self.id + 'sensor',
+                self.sensors[s] = SO_MAPPING.get(sensors[s][0])(s + self.id +
+                                                                'sensor',
                                                 **sensors[s][1])
 
         # create condition
         self.conditions = {}
         conditions = setting.get('conditions')
         for c in conditions.keys():
-            self.conditions[c] = SO_MAPPING.get(conditions[c][0])(self.sensors[conditions[c][1]],
-                                                  self.activators[conditions[c][2]],
-                                                  name=c+self.id+'condition')
+            self.conditions[c] = SO_MAPPING.get(conditions[c][0])(
+                self.sensors[conditions[c][1]], self.activators[conditions[c][2]],
+                name=c+self.id+'condition')
             if conditions[c][3]:
                 self.conditions[c].optional = True
 
@@ -60,20 +65,16 @@ class SOAgent(object):
         behaviours = setting.get('behaviours')
         for b in behaviours.keys():
             # rework conditions
-            for p in behaviours[b][2].keys():
-                if all(isinstance(e, list) for e in behaviours[b][2][p]):
+            if 'effects' in behaviours[b][2].keys():
                     sub = []
-                    for c in behaviours[b][2][p]:
-                        sub.append(self.create_condition(c))
-                    behaviours[b][2][p] = sub
-                else:
-                    behaviours[b][2][p] = self.create_condition(behaviours[b][2][p])
+                    for c in behaviours[b][2]['effects']:
+                        sub.append(self.create_effect(c))
+                    behaviours[b][2]['effects'] = sub
 
-            self.behaviours[b] = SO_MAPPING.get(behaviours[b][0])(name=b+self.id+'behaviour',
-                                                  planner_prefix=planner_prefix,
-                                                  motion_topic=motion_topic,
-                                                  mechanism=self.mechanisms[behaviours[b][1]],
-                                                  **behaviours[b][2])
+            self.behaviours[b] = SO_MAPPING.get(behaviours[b][0])(
+                name=b+self.id+'behaviour', plannerPrefix=planner_prefix,
+                motion_topic=motion_topic, mechanism=
+                self.mechanisms[behaviours[b][1]], **behaviours[b][2])
 
         # add preconditions
         preconds = setting.get('preconditions')
@@ -97,7 +98,7 @@ class SOAgent(object):
     def create_condition(self, lst):
         """
         method to create conditions
-        :param list: list of conditions
+        :param lst: list of conditions
         :return: conditions
         """
         if lst[0] == 'None':
@@ -110,3 +111,16 @@ class SOAgent(object):
                 condition = SO_MAPPING.get(lst[0])(self.conditions[lst[1]])
 
         return condition
+
+    def create_effect(self, eff):
+        """
+        method to create effects for behaviours
+        """
+
+        # create condition
+        cond = self.create_condition(eff[0])
+
+        if eff[2] == 'bool':
+            return [cond, eff[1], bool]
+        elif eff[2] == 'float':
+            return [cond, eff[1], float]
