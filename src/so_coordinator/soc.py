@@ -6,10 +6,10 @@ Created on 22.03.2017
 Module including self-organization coordinator
 """
 
-import yaml
 import os
-import rospy
 from behaviour_components.network_behavior import NetworkBehavior
+from so_coordinator.so_components import SOComponents, create_from_yaml
+from so_mapping import SO_MAPPING
 
 
 class SoCoordinator(NetworkBehavior):
@@ -20,21 +20,25 @@ class SoCoordinator(NetworkBehavior):
     """
 
     # requires execution steps = True is super important!
-    def __init__(self, effects, class_name=None, id=1, so_goal='ReachGoal',
+    def __init__(self, effects, id=1, so_goal='ReachGoal',
                  expert_knowledge='so_knowledge.yaml',
+                 components_class=SOComponents,
                  name='SoCoordinator',
+                 mapping=SO_MAPPING,
                  requires_execution_steps=True,
+                 pose_frame='robot',
+                 motion_topic='',
                  **kwargs):
         """
         initialization
         :param effect:
-        :param class_name:
+        :param components_class:
         :param id:
         :param so_goal:
         :param expert_knowledge:
         :param name:
-        :param requires_execution_steps: whether the execution steps should be caused from the parent manager or not.
-                If not, the step method must be called manually
+        :param requires_execution_steps: whether the execution steps should be
+                                         caused from the parent manager or not.
         :param kwargs:
         """
 
@@ -47,18 +51,13 @@ class SoCoordinator(NetworkBehavior):
                                             requires_execution_steps,
                                             **kwargs)
 
-        data = None
+        components = create_from_yaml(os.path.join(os.path.dirname(__file__),
+                                                   expert_knowledge),
+                                      id,
+                                      planner_prefix=self.get_manager_prefix(),
+                                      so_goal=so_goal,
+                                      motion_topic=motion_topic,
+                                      mapping=mapping,
+                                      components_class=components_class,
+                                      pose_frame=pose_frame)
 
-        with open(os.path.join(os.path.dirname(__file__), expert_knowledge),
-                  'r') as stream:
-            try:
-                data = yaml.load(stream)
-            except yaml.YAMLError as exc:
-                print(exc)
-
-        # create
-        if data:
-            behaviours = class_name(data[so_goal], id,
-                                    planner_prefix=self.get_manager_prefix())
-        else:
-            rospy.logerr("SO behaviour creation in " + self.name + " failed.")
