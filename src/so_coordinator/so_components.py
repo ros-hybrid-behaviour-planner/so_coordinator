@@ -65,8 +65,12 @@ class SOComponents(object):
         # create mechanisms
         mechanisms = specs.get('mechanisms')
         for m in mechanisms.keys():
+            if 'buffer' in mechanisms[m][1].keys():
+                mechanisms[m][1]['buffer'] = self.buffer[mechanisms[m][1]
+                                                         ['buffer']]
+
             self.mechanisms[m] = self.mapping.get(mechanisms[m][0])(
-                self.buffer[mechanisms[m][1]], **mechanisms[m][2])
+                **mechanisms[m][1])
 
         # create activator
         activators = specs.get('activators')
@@ -77,91 +81,88 @@ class SOComponents(object):
         # create sensor
         sensors = specs.get('sensors')
         for s in sensors.keys():
-            if sensors[s][0] == 'GradientSensor':
-                # several mechanisms
+            # adjust mechanism parameter
+            if 'mechanism' in sensors[s][1].keys():
                 if isinstance(sensors[s][1], list):
-                    self.sensors[s] = self.mapping.get(sensors[s][0])(
-                        name=s + self.id + 'sensor',
-                        mechanism=[self.mechanisms[m] for m in sensors[s][1]],
-                        **sensors[s][2])
-                # one mechanism
+                    sensors[s][1]['mechanism'] = [self.mechanisms[m] for m in
+                                                  sensors[s][1]['mechanism']]
                 else:
-                    self.sensors[s] = self.mapping.get(sensors[s][0])(
-                        s + self.id + 'sensor', self.mechanisms[sensors[s][1]],
-                        **sensors[s][2])
-            else:
-                if 'pattern' in sensors[s][1].keys():
-                    sensors[s][1]['pattern'][0] += self.id
+                    sensors[s][1]['mechanism'] = self.mechanisms[sensors[s][1]
+                                                                 ['mechanism']]
+            # adjust pattern parameter
+            if 'pattern' in sensors[s][1].keys():
+                sensors[s][1]['pattern'][0] += self.id
 
-                self.sensors[s] = self.mapping.get(sensors[s][0])(
-                    name=s + self.id + 'sensor', **sensors[s][1])
+            self.sensors[s] = self.mapping.get(sensors[s][0])(
+                name=s + self.id + 'sensor', **sensors[s][1])
 
         # create condition
         conditions = specs.get('conditions')
         for c in conditions.keys():
+            if 'sensor' in conditions[c][1].keys():
+                conditions[c][1]['sensor'] = self.sensors[conditions[c][1]
+                                                          ['sensor']]
+            elif 'sensors' in conditions[c][1].keys():
+                conditions[c][1]['sensors'] = [self.sensors[s] for s in
+                                               conditions[c][1]['sensors']]
 
-            if isinstance(conditions[c][1], list):
-                self.conditions[c] = self.mapping.get(conditions[c][0])(
-                    [self.sensors[s] for s in conditions[c][1]],
-                    self.activators[conditions[c][2]], name=c+self.id+'condition')
-            else:
-                self.conditions[c] = self.mapping.get(conditions[c][0])(
-                    self.sensors[conditions[c][1]],
-                    self.activators[conditions[c][2]], name=c+self.id+'condition')
-            if conditions[c][3]:
+            if 'activator' in conditions[c][1].keys():
+                conditions[c][1]['activator'] = self.activators[
+                    conditions[c][1]['activator']]
+
+            self.conditions[c] = self.mapping.get(conditions[c][0])(
+                name=c + self.id + 'condition', **conditions[c][1])
+
+            if conditions[c][2]:
                 self.conditions[c].optional = True
 
         # create behaviours
         behaviours = specs.get('behaviours')
         for b in behaviours.keys():
             # rework conditions
-            if 'effects' in behaviours[b][2].keys():
+            if 'effects' in behaviours[b][1].keys():
                     sub = []
-                    for c in behaviours[b][2]['effects']:
+                    for c in behaviours[b][1]['effects']:
                         sub.append(self.create_effect(c))
-                    behaviours[b][2]['effects'] = sub
+                    behaviours[b][1]['effects'] = sub
 
             # ensure unique value and state keys
-            if 'value_key' in behaviours[b][2].keys():
-                behaviours[b][2]['value_key'] += self.id
-            if 'state_key' in behaviours[b][2].keys():
-                behaviours[b][2]['state_key'] += self.id
+            if 'value_key' in behaviours[b][1].keys():
+                behaviours[b][1]['value_key'] += self.id
+            if 'state_key' in behaviours[b][1].keys():
+                behaviours[b][1]['state_key'] += self.id
 
-            # several mechanisms
-            if isinstance(behaviours[b][1], list):
-                self.behaviours[b] = self.mapping.get(behaviours[b][0])(
-                    name=b+self.id+'behaviour',
-                    plannerPrefix=self.planner_prefix,
-                    motion_topic=self.motion_topic,
-                    mechanism=[self.mechanisms[m] for m in behaviours[b][1]],
-                    **behaviours[b][2])
-            # one mechanism
-            else:
-                self.behaviours[b] = self.mapping.get(behaviours[b][0])(
-                    name=b+self.id+'behaviour',
-                    plannerPrefix=self.planner_prefix,
-                    motion_topic=self.motion_topic,
-                    mechanism=self.mechanisms[behaviours[b][1]],
-                    **behaviours[b][2])
+            if 'mechanism' in behaviours[b][1].keys():
+                if isinstance(behaviours[b][1], list):
+                    behaviours[b][1]['mechanism'] = [self.mechanisms[m] for m
+                                                     in behaviours[b][1]
+                                                     ['mechanism']]
+                else:
+                    behaviours[b][1]['mechanism'] = self.mechanisms[
+                        behaviours[b][1]['mechanism']]
 
-        print 'preconditions'
+            self.behaviours[b] = self.mapping.get(behaviours[b][0])(
+                name=b+self.id+'behaviour',
+                plannerPrefix=self.planner_prefix,
+                motion_topic=self.motion_topic,
+                **behaviours[b][1])
+
         # add preconditions
         preconds = specs.get('preconditions')
         for p in preconds.keys():
             for e in preconds[p]:
                 self.behaviours[p].addPrecondition(self.create_condition(e))
 
-        print 'goals'
         # create goals
         goals = specs.get('goals')
         for g in goals.keys():
-            conds = []
-            for c in goals[g][2]:
-                conds.append(self.create_condition(c))
+            if 'conditions' in goals[g][1].keys():
+                goals[g][1]['conditions'] = [self.create_condition(c) for c in
+                                             goals[g][1]['conditions']]
 
             self.goals[g] = self.mapping.get(goals[g][0])(
                 name=g+self.id+'goal', plannerPrefix=self.planner_prefix,
-                permanent=goals[g][1], conditions=conds)
+                **goals[g][1])
 
     def create_condition(self, lst):
         """
@@ -169,7 +170,6 @@ class SOComponents(object):
         :param lst: list of conditions
         :return: conditions
         """
-        print lst
         # solely return condition object
         if lst[0] == 'None':
             condition = self.conditions[lst[1]]

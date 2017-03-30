@@ -1,29 +1,29 @@
 # ChemotaxisGe - Example XXX
 ReachGoal: {
   buffer: {bf_chem: {} },
-  mechanisms: {m_chem: [ChemotaxisGe, 'bf_chem', {moving: False, static: True}]},
+  mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_chem', moving: False, static: True}]},
   activators: {a_bool: [BooleanActivator, {}],
                a_lin: [LinearActivator, {zeroActivationValue: 2.0, fullActivationValue: 0.0, minActivation: 0.0, maxActivation: 1.0}]},
-  sensors: {s_goal: [GradientSensor, 'm_chem', {}],
-            s_goal_reached: [GradientSensor, 'm_chem', {sensor_type: goal}],
-            s_dist: [GradientSensor, 'm_chem', {sensor_type: goal}]},
-  conditions: {c_goal: [VectorBoolCondition, 's_goal', 'a_bool', False],
-               c_goal_reached: [GoalBoolCondition, 's_goal_reached', 'a_bool', False],
-               c_dist: [VectorDistCondition, 's_dist', 'a_lin', True]},
-  behaviours: {b_chem: [MoveBehaviour, 'm_chem', {effects: [[[None, 'c_dist'], -1.0, float], [[None, 'c_goal_reached'], 1.0, bool]]}]},
+  sensors: {s_goal: [GradientSensor, {mechanism: 'm_chem'}],
+            s_goal_reached: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}],
+            s_dist: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}]},
+  conditions: {c_goal: [VectorBoolCondition, {sensor: 's_goal', activator: 'a_bool'}, False],
+               c_goal_reached: [GoalBoolCondition, {sensor: 's_goal_reached', activator: 'a_bool'}, False],
+               c_dist: [VectorDistCondition, {sensor: 's_dist', activator: 'a_lin'}, True]},
+  behaviours: {b_chem: [MoveBehaviour, {mechanism: 'm_chem', effects: [[[None, 'c_dist'], -1.0, float], [[None, 'c_goal_reached'], 1.0, bool]]}]},
   preconditions: {b_chem: [[Negation, 'c_goal_reached'], [None, 'c_dist'], [None, 'c_goal']]},
-  goals: {g_chem: [GoalBase, False, [[None, 'c_goal_reached']]]}
+  goals: {g_chem: [GoalBase, {permanent: False, conditions: [[None, 'c_goal_reached']]}]}
 }
 
 # FlockingRey + Chemotaxis - Example XXX
 CollectiveExploration: {
   buffer: {bf_flocking: {view_distance: 2.0} },
-  mechanisms: {m_flocking: [FlockingRey, 'bf_flocking', {maxvel: 0.75}],
-               m_chemotaxis: [ChemotaxisBalch, 'bf_flocking', {maxvel: 0.25, moving: False, static: True} ]},
+  mechanisms: {m_flocking: [FlockingRey, {buffer: 'bf_flocking', maxvel: 0.75}],
+               m_chemotaxis: [ChemotaxisBalch, {buffer: 'bf_flocking', maxvel: 0.25, moving: False, static: True} ]},
   activators: {a_bool: [BooleanActivator, {} ] },
-  sensors: {s_flocking: [GradientSensor, ['m_flocking', 'm_chemotaxis'], {}] },
-  conditions: {c_flocking: [VectorBoolCondition, 's_flocking', 'a_bool', False] },
-  behaviours: {b_flocking: [MoveBehaviour, ['m_flocking', 'm_chemotaxis'], {'effects': [[[None, 'c_flocking'], -1.0, bool]] } ] },
+  sensors: {s_flocking: [GradientSensor, {mechanism: ['m_flocking', 'm_chemotaxis']}] },
+  conditions: {c_flocking: [VectorBoolCondition, {sensor: 's_flocking', activator: 'a_bool'}, False] },
+  behaviours: {b_flocking: [MoveBehaviour, {mechanism: ['m_flocking', 'm_chemotaxis'], 'effects': [[[None, 'c_flocking'], -1.0, bool]] } ] },
   preconditions: {b_flocking: [[None, 'c_flocking']] },
   goals: { }
 }
@@ -31,11 +31,11 @@ CollectiveExploration: {
 # FlockingRey - Example XXX
 FormationControl: {
   buffer: {bf_flocking: {view_distance: 2.0} },
-  mechanisms: {m_flocking: [FlockingRey, 'bf_flocking', {maxvel: 1.00}]},
+  mechanisms: {m_flocking: [FlockingRey, {buffer: 'bf_flocking', maxvel: 1.00}]},
   activators: {a_bool: [BooleanActivator, {} ] },
-  sensors: {s_flocking: [GradientSensor, 'm_flocking', {}] },
-  conditions: {c_flocking: [VectorBoolCondition, 's_flocking', 'a_bool', False] },
-  behaviours: {b_flocking: [MoveBehaviour, 'm_flocking', {effects: [[[None, 'c_flocking'], -1.0, bool]] } ] },
+  sensors: {s_flocking: [GradientSensor, {mechanism: 'm_flocking'}] },
+  conditions: {c_flocking: [VectorBoolCondition, {sensor: 's_flocking', activator: 'a_bool'}, False] },
+  behaviours: {b_flocking: [MoveBehaviour, {mechanism: 'm_flocking', effects: [[[None, 'c_flocking'], -1.0, bool]] } ] },
   preconditions: {b_flocking: [[None, 'c_flocking']] },
   goals: { }
 }
@@ -43,82 +43,355 @@ FormationControl: {
 # MorphogenesisBarycenter + ChemotaxisBalch - Example morphogenesissim.launch (rhbpSelforganizationTest)
 CircleFormation: {
   buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0} },
-  mechanisms: { m_morph: [MorphogenesisBarycenter, 'bf_morph', {frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center} ],
-                m_chem: [ChemotaxisBalch, 'bf_morph', {moving: False, static: True, minvel: 1.0, frames: ['Center']}] },
+  mechanisms: { m_morph: [MorphogenesisBarycenter, {buffer: 'bf_morph', frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center} ],
+                m_chem: [ChemotaxisBalch, {buffer: 'bf_morph', moving: False, static: True, minvel: 1.0, frames: ['Center']}] },
   activators: { a_bool: [BooleanActivator, {} ] },
-  sensors: { s_morph: [GradientSensor, 'm_morph', {sensor_type: value}],
+  sensors: { s_morph: [GradientSensor, {mechanism: 'm_morph', sensor_type: value}],
              s_value: [KnowledgeFactSensor, {pattern: [value, '*']}],
-             s_state: [GradientSensor, 'm_morph', {sensor_type: state} ],
+             s_state: [GradientSensor, {mechanism: 'm_morph', sensor_type: state} ],
              s_last_state: [KnowledgeFactSensor, {pattern: [state, '*']}],
-             s_goal: [GradientSensor, 'm_chem', {}],
-             s_goal_reached: [GradientSensor, 'm_chem', {sensor_type: goal}] },
-  conditions: { c_morph: [ChangeFloatCondition, ['s_morph', 's_value'], 'a_bool', False],
-                c_state: [ChangeStringCondition, ['s_state', 's_last_state'], 'a_bool', False],
-                c_goal: [VectorBoolCondition, 's_goal', 'a_bool', False],
-                c_goal_reached: [GoalBoolCondition, 's_goal_reached', 'a_bool', False] },
-  behaviours: { b_morph: [DecisionBehaviour, 'm_morph', {effects: [[[None, 'c_morph'], -1.0, bool], [[None, 'c_state'], -1.0, bool], [[None, 'c_goal'], 1.0, bool]], value_key: value, state_key: state}],
-                b_chem: [MoveBehaviour, 'm_chem', {effects: [[[None, 'c_goal_reached'], 1.0, bool]], }] },
+             s_goal: [GradientSensor, {mechanism: 'm_chem'}],
+             s_goal_reached: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}] },
+  conditions: { c_morph: [ChangeFloatCondition, {sensors: ['s_morph', 's_value'], activator: 'a_bool'}, False],
+                c_state: [ChangeStringCondition, {sensors: ['s_state', 's_last_state'], activator: 'a_bool'}, False],
+                c_goal: [VectorBoolCondition, {sensor: 's_goal', activator: 'a_bool'}, False],
+                c_goal_reached: [GoalBoolCondition, {sensor: 's_goal_reached', activator: 'a_bool'}, False] },
+  behaviours: { b_morph: [DecisionBehaviour, {mechanism: 'm_morph', effects: [[[None, 'c_morph'], -1.0, bool], [[None, 'c_state'], -1.0, bool], [[None, 'c_goal'], 1.0, bool]], value_key: value, state_key: state}],
+                b_chem: [MoveBehaviour, {mechanism: 'm_chem', effects: [[[None, 'c_goal_reached'], 1.0, bool]], }] },
   preconditions: {b_morph: [[Disjunction, [[None, 'c_morph'], [None, 'c_state']]]],
                   b_chem: [[Negation, 'c_goal_reached'], [None, 'c_goal'], [Negation, [Disjunction, [[None, 'c_morph'], [None, 'c_state']]]]]},
-  goals: { g_morph: [GoalBase, False, [[None, 'c_goal_reached']]]}
+  goals: { g_morph: [GoalBase, {permanent: False, conditions: [[None, 'c_goal_reached']]}]}
 }
 
 
-
-
-# Exploration (each agent on its own) - Example XXX ==> Combine walk random with follow gradient
-RandomExploration: {
-
-}
-
-
-# GossipMax - Example XXX
-MaxValue: {
-
-}
 
 
 # MorphogenesisBarycenter - Example XXX
 FindBarycenter: {
   buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0} },
-  mechanisms: { m_morph: [MorphogenesisBarycenter, 'bf_morph', {frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center}] },
+  mechanisms: { m_morph: [MorphogenesisBarycenter, {buffer: 'bf_morph', frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center}] },
   activators: { a_bool: [BooleanActivator, {} ] },
-  sensors: { s_morph: [GradientSensor, 'm_morph', {sensor_type: value}],
+  sensors: { s_morph: [GradientSensor, {mechanism: 'm_morph', sensor_type: value}],
              s_value: [KnowledgeFactSensor, {pattern: [value, '*']}],
-             s_state: [GradientSensor, 'm_morph', {sensor_type: state} ],
+             s_state: [GradientSensor, {mechanism: 'm_morph', sensor_type: state} ],
              s_last_state: [KnowledgeFactSensor, {pattern: [state, '*']}] },
-  conditions: { c_morph: [ChangeFloatCondition, ['s_morph', 's_value'], 'a_bool', False],
-                c_state: [ChangeStringCondition, ['s_state', 's_last_state'], 'a_bool', False] },
-  behaviours: { },
+  conditions: { c_morph: [ChangeFloatCondition, {sensors: ['s_morph', 's_value'], activator: 'a_bool'}, False],
+                c_state: [ChangeStringCondition, {sensors: ['s_state', 's_last_state'], activator: 'a_bool'}, False] },
+  behaviours: [ ],
   preconditions: { },
   goals: { }
 }
 
+# Exploration (each agent on its own) - Example XXX ==> Combine walk random with follow gradient
+RandomExploration: { }
+
+
+# GossipMax - Example XXX
+MaxValue: { }
 
 # Chemotaxis Collision Avoidance mechanism - Example XXX
-CollisionAvoidance: {
-
-}
+CollisionAvoidance: { }
 
 
 # Repulsion - Example XXX
-AvoidAgentCollisions: {
-
-}
+AvoidAgentCollisions: { }
 
 
 # RepulsionFernandez - Example XXX
-UniformDistribution: {
-
-}
+UniformDistribution: { }
 
 
 # Ant Foraging: Explore and Exploit - Example XXX
 Foraging: {
+  buffer: { bf_pheromone: {view_distance: 1.5, min_diffusion: 0.3, aggregation_distance: 0.1, store_all: False, framestorage: ['Pheromone', 'robot'], ev_thread: True, ev_time: 1},
+            bf_gradient: {view_distance: 1.5, aggregation_distance: 0.1, store_all: False, ev_thread: True, ev_time: 1, framestorage: ['Nest', 'Food', 'robot']} },
+  mechanisms: { m_repulsion: [CollisionAvoidance, {buffer: 'bf_gradient', moving: True, static: False, maxvel: 0.5}],
+                m_deposit_pheromones: [DepositPheromones, {buffer: 'bf_gradient', frames: ['Nest'], moving: True, minvel: 0.5, maxvel: 1.0, ev_factor: 0.9, ev_time: 5}],
+                m_return_nest: [ChemotaxisGe, {buffer: 'bf_gradient', moving: True, static: True, frames: ['Nest'], minvel: 0.5, maxvel: 1.0}],
+                m_decision: [ForagingDecision, {probability: 0.5}],
+                m_exploitation: [Exploitation, {buffer: 'bf_pheromone', frames: ['Pheromone'], minvel: 0.5, maxvel: 0.1} ],
+                m_follow_food: [ChemotaxisGe, {buffer: 'bf_gradient', static: True, moving: True, frames: ['Food'], minvel: 0.5}],
+                m_sense_trail: [FollowAll, {buffer: 'bf_pheromone', moving: False, frames: ['Pheromone']}],
+                m_exploration: [Exploration, {buffer: 'bf_gradient', minvel: 0.5}] },
+  activators: { a_bool: [BooleanActivator, {}] },
+
 
 }
 
 
+        # Exploration & Exploitation: Follow Food Source Gradient
+        # condition: food gradient within view
+        self.food_sensor = GradientSensor('foodSensor' + self.id,
+                                          self.follow_food, clock_topic,
+                                          sensor_type=SENSOR.GOAL)
 
+        self.food_condition = VectorBoolCondition(self.food_sensor,
+                                                  self.bool_activator,
+                                                  name=self.id+"FoodCondition")
 
+        # condition: food gradient reached
+        self.food_reached_sensor = GradientSensor('foodReachedSensor'+self.id,
+                                                  self.follow_food,
+                                                  clock_topic,
+                                                  sensor_type=SENSOR.GOAL,
+                                                  initial_value=True)
+
+        self.food_reached_condition = GoalBoolCondition(
+            self.food_reached_sensor, self.bool_activator,
+            name=self.id + "FoodReachedCondition")
+
+        # Return to nest
+        # condition: nest reached
+        self.nest_reached_sensor = GradientSensor('NestReachedSensor'+self.id,
+                                                  self.deposit_pheromones,
+                                                  clock_topic,
+                                                  sensor_type=SENSOR.GOAL,
+                                                  initial_value=True)
+
+        self.nest_reached_condition = GoalBoolCondition(
+            self.nest_reached_sensor, self.bool_activator,
+            name=self.id + "NestReachedCondition")
+
+        # Exploitation
+        self.exploit_sensor = KnowledgeSensor((state_key,
+                                               STATE.EXPLOITATION),
+                                              sensor_name='exploitSensor'+
+                                                          self.id)
+
+        self.exploit_condition = BoolFCondition(self.exploit_sensor,
+                                                self.bool_activator,
+                                                name='exploitCond' + self.id)
+
+        # Exploration
+        self.exploration_sensor = KnowledgeSensor((state_key,
+                                                   STATE.EXPLORATION),
+                                                  sensor_name=
+                                                  'explorationSensor'+ self.id)
+
+        self.exploration_condition = BoolFCondition(self.exploration_sensor,
+                                                    self.bool_activator,
+                                                    name='stateCond' + self.id)
+
+        # Trail
+        # within view angle
+        self.trail_sensor = GradientSensor('trailSensor' + self.id,
+                                           self.exploitation, clock_topic)
+
+        self.trail_condition = VectorBoolCondition(self.trail_sensor,
+                                                   self.bool_activator,
+                                                   name=self.id + "TrailCond")
+
+        # within complete view distance
+        self.trail_view_sensor = GradientSensor('trailViewSensor' + self.id,
+                                                self.sense_trail, clock_topic)
+
+        self.trail_view_condition = VectorBoolCondition(self.trail_view_sensor,
+                                                        self.bool_activator,
+                                                        name=self.id +
+                                                             'TrailViewCond')
+
+        # Return sensor
+        self.return_sensor = KnowledgeSensor((state_key, STATE.RETURN),
+                                             sensor_name='returnSensor' +
+                                                          self.id)
+
+        self.return_condition = BoolFCondition(self.return_sensor,
+                                               self.bool_activator,
+                                               name='ReturnCond' + self.id)
+
+        # Return if trail was lost or max reach
+        # None sensor
+        self.none_sensor = KnowledgeSensor((state_key, STATE.NONE),
+                                           sensor_name='noneSensor' + self.id)
+
+        self.none_condition = BoolFCondition(self.none_sensor,
+                                             self.bool_activator,
+                                             name='NoneCond' + self.id)
+
+        # max distance
+        self.max_dist_sensor = GradientSensor('MaxDistSensor'+self.id,
+                                              self.deposit_pheromones,
+                                              clock_topic,
+                                              sensor_type=SENSOR.GOAL,
+                                              initial_value=True)
+
+        self.max_dist_condition = MaxDistCondition(
+            self.max_dist_sensor, self.bool_activator, 7,
+            name=self.id + "MaxDistCond")
+
+        # Behaviours
+
+        # Decide: Exploration vs. Exploitation
+        self.decision = DecisionStateBehaviour(self.decision,
+                                               state_key=state_key,
+                                               effects=[
+                                                   [self.exploit_condition,
+                                                    1.0, bool],
+                                                   [self.exploration_condition,
+                                                    1.0, bool]],
+                                               name='decision'+self.id,
+                                               plannerPrefix='planner_' +
+                                                             self.id
+                                               )
+
+        self.decision.addPrecondition(self.nest_reached_condition)
+        self.decision.addPrecondition(Disjunction(self.return_condition,
+                                                  self.none_condition))
+
+        # Reset state when food source was reached
+        self.return_state = SetStateBehaviour(self.deposit_pheromones,
+                                              state=STATE.RETURN,
+                                              state_key=state_key,
+                                              effects=[
+                                                  [self.return_condition, -1.0,
+                                                   bool]],
+                                              name='returnState'+self.id,
+                                              plannerPrefix='planner_' +
+                                                            self.id
+                                              )
+
+        # reset state either when robot should exploit and does not find trail
+        # or when food was reached
+        self.return_state.addPrecondition(self.food_reached_condition)
+        self.return_state.addPrecondition(Negation(self.return_condition))
+
+        # trail lost during exploitation
+        self.lost = SetStateBehaviour(self.deposit_pheromones,
+                                      state=STATE.NONE,
+                                      state_key=state_key,
+                                      effects=[[self.none_condition, -1.0,
+                                                bool]],
+                                      name='lostState'+self.id,
+                                      plannerPrefix='planner_' + self.id
+                                      )
+
+        self.lost.addPrecondition(self.exploit_condition)
+        self.lost.addPrecondition(Negation(self.food_condition))
+        self.lost.addPrecondition(Negation(self.food_reached_condition))
+
+        # agent not in nest, does not have a trail in front of it anymore
+        # and does not sense a food gradient
+        self.lost.addPrecondition(Negation(self.nest_reached_condition))
+        self.lost.addPrecondition(Negation(self.trail_condition))
+
+        # no trail in nest
+        self.no_trail = SetStateBehaviour(self.deposit_pheromones,
+                                      state=STATE.NONE,
+                                      state_key=state_key,
+                                      effects=[[self.none_condition,- 1.0,
+                                                bool]],
+                                      name='noTrailState'+self.id,
+                                      plannerPrefix='planner_' + self.id
+                                      )
+
+        self.no_trail.addPrecondition(self.exploit_condition)
+        self.no_trail.addPrecondition(Negation(self.food_condition))
+        # agent in nest and no pheromone gradient at all available
+        self.no_trail.addPrecondition(Negation(self.trail_view_condition))
+        self.no_trail.addPrecondition(self.nest_reached_condition)
+
+        # max distance from gradient reached during exploration
+        self.max_dist = SetStateBehaviour(self.deposit_pheromones,
+                                          state=STATE.NONE,
+                                          state_key=state_key,
+                                          effects=[[self.none_condition,
+                                                    -1.0, bool]],
+                                          name='maxDistState'+self.id,
+                                          plannerPrefix='planner_' + self.id)
+
+        self.max_dist.addPrecondition(self.max_dist_condition)
+        self.max_dist.addPrecondition(self.exploration_condition)
+
+        # Return to nest
+        # without pheromones
+        self.return_behaviour = MoveBehaviour(mechanism=self.return_nest,
+                                              effects=[
+                                                  [self.nest_reached_condition,
+                                                   1.0, bool]],
+                                              motion_topic=motion_topic,
+                                              name='return2Nest' + self.id,
+                                              plannerPrefix='planner_' +
+                                                            self.id)
+
+        self.return_behaviour.addPrecondition(Negation(
+            self.nest_reached_condition))
+        self.return_behaviour.addPrecondition(self.none_condition)
+
+        # with pheromones
+        self.deposit_behaviour = MoveBehaviour(mechanism=
+                                               self.deposit_pheromones,
+                                               effects=[
+                                                   [self.nest_reached_condition,
+                                                    1.0, bool]],
+                                               motion_topic=motion_topic,
+                                               name='depositPheromone' +
+                                                    self.id,
+                                               plannerPrefix='planner_' +
+                                                             self.id)
+
+        self.deposit_behaviour.addPrecondition(Negation(
+            self.nest_reached_condition))
+        self.deposit_behaviour.addPrecondition(self.return_condition)
+
+        # Exploration & Exploitation: follow food gradient
+        self.follow_food = MoveBehaviour(mechanism=self.follow_food,
+                                         effects=[
+                                             [self.food_reached_condition, 1.0,
+                                              bool]],
+                                         motion_topic=motion_topic,
+                                         name='followFood' + self.id,
+                                         plannerPrefix='planner_' + self.id)
+
+        self.follow_food.addPrecondition(Conjunction(self.food_condition,
+                                         Negation(self.food_reached_condition))
+                                         )
+        self.follow_food.addPrecondition(Disjunction(self.exploit_condition,
+                                                     self.exploration_condition
+                                                     ))
+
+        # Exploitation: follow pheromone trail
+        self.exploit = MoveBehaviour(mechanism=[self.exploitation,
+                                                self.repulsion],
+                                     effects=[
+                                         [self.food_condition, 1.0, bool]],
+                                     motion_topic=motion_topic,
+                                     name='exploit' + self.id,
+                                     plannerPrefix='planner_' + self.id)
+
+        self.exploit.addPrecondition(Conjunction(self.trail_condition,
+                                     Negation(self.food_condition)))
+        self.exploit.addPrecondition(self.exploit_condition)
+
+        self.turn = TurnBehaviour(mechanism=self.exploitation,
+                                  effects=[[self.trail_condition, 1.0,
+                                            bool]],
+                                  motion_topic=motion_topic,
+                                  name='turn'+self.id,
+                                  plannerPrefix='planner_' + self.id)
+
+        self.turn.addPrecondition(Conjunction(Negation(self.trail_condition),
+                                              self.trail_view_condition))
+        self.turn.addPrecondition(self.nest_reached_condition)
+        self.turn.addPrecondition(self.exploit_condition)
+
+        # Exploration: Random Walk
+        self.explore = MoveBehaviour(mechanism=[self.exploration,
+                                                self.repulsion],
+                                     motion_topic=motion_topic,
+                                     effects=[
+                                         [self.food_condition, 1.0, bool]],
+                                     name='explore'+self.id,
+                                     plannerPrefix='planner_' + self.id)
+
+        self.explore.addPrecondition(Conjunction(Negation(self.food_condition),
+                                     Negation(self.food_reached_condition)))
+        self.explore.addPrecondition(Conjunction(self.exploration_condition,
+                                     Negation(self.max_dist_condition)))
+
+        # Goal: reach attractive gradient / food source
+        self.goal = GoalBase("goal" + self.id, permanent=False, conditions=[
+            self.food_reached_condition], plannerPrefix='planner_'+self.id)
+
+        # publish initial state
+        knowledge_pub.publish(Push([state_key, str(STATE.NONE)]))
 
