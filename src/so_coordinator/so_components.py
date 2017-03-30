@@ -81,8 +81,8 @@ class SOComponents(object):
                 # several mechanisms
                 if isinstance(sensors[s][1], list):
                     self.sensors[s] = self.mapping.get(sensors[s][0])(
-                        s + self.id + 'sensor',
-                        [self.mechanisms[m] for m in sensors[s][1]],
+                        name=s + self.id + 'sensor',
+                        mechanism=[self.mechanisms[m] for m in sensors[s][1]],
                         **sensors[s][2])
                 # one mechanism
                 else:
@@ -90,15 +90,24 @@ class SOComponents(object):
                         s + self.id + 'sensor', self.mechanisms[sensors[s][1]],
                         **sensors[s][2])
             else:
+                if 'pattern' in sensors[s][1].keys():
+                    sensors[s][1]['pattern'][0] += self.id
+
                 self.sensors[s] = self.mapping.get(sensors[s][0])(
-                    s + self.id + 'sensor', **sensors[s][1])
+                    name=s + self.id + 'sensor', **sensors[s][1])
 
         # create condition
         conditions = specs.get('conditions')
         for c in conditions.keys():
-            self.conditions[c] = self.mapping.get(conditions[c][0])(
-                self.sensors[conditions[c][1]],
-                self.activators[conditions[c][2]], name=c+self.id+'condition')
+
+            if isinstance(conditions[c][1], list):
+                self.conditions[c] = self.mapping.get(conditions[c][0])(
+                    [self.sensors[s] for s in conditions[c][1]],
+                    self.activators[conditions[c][2]], name=c+self.id+'condition')
+            else:
+                self.conditions[c] = self.mapping.get(conditions[c][0])(
+                    self.sensors[conditions[c][1]],
+                    self.activators[conditions[c][2]], name=c+self.id+'condition')
             if conditions[c][3]:
                 self.conditions[c].optional = True
 
@@ -111,6 +120,12 @@ class SOComponents(object):
                     for c in behaviours[b][2]['effects']:
                         sub.append(self.create_effect(c))
                     behaviours[b][2]['effects'] = sub
+
+            # ensure unique value and state keys
+            if 'value_key' in behaviours[b][2].keys():
+                behaviours[b][2]['value_key'] += self.id
+            if 'state_key' in behaviours[b][2].keys():
+                behaviours[b][2]['state_key'] += self.id
 
             # several mechanisms
             if isinstance(behaviours[b][1], list):
@@ -129,12 +144,14 @@ class SOComponents(object):
                     mechanism=self.mechanisms[behaviours[b][1]],
                     **behaviours[b][2])
 
+        print 'preconditions'
         # add preconditions
         preconds = specs.get('preconditions')
         for p in preconds.keys():
             for e in preconds[p]:
                 self.behaviours[p].addPrecondition(self.create_condition(e))
 
+        print 'goals'
         # create goals
         goals = specs.get('goals')
         for g in goals.keys():
@@ -152,14 +169,18 @@ class SOComponents(object):
         :param lst: list of conditions
         :return: conditions
         """
+        print lst
         # solely return condition object
         if lst[0] == 'None':
             condition = self.conditions[lst[1]]
         # return nested conditions (e.g. Negation, Disjunction)
         else:
-            if isinstance(lst[1], list):
+            if all(isinstance(elem, list) for elem in lst[1]):
                 sub = [self.create_condition(l) for l in lst[1]]
                 condition = self.mapping.get(lst[0])(*sub)
+            elif isinstance(lst[1], list):
+                subcond = self.create_condition(lst[1])
+                condition = self.mapping.get(lst[0])(subcond)
             else:
                 condition = self.mapping.get(lst[0])(self.conditions[lst[1]])
 
@@ -167,15 +188,17 @@ class SOComponents(object):
 
     def create_effect(self, eff):
         """
-        method to create effects for behaviours
+        method to create effect parameter to be handed over to behaviours
+        :return: list [condition, +/- 1, type]
         """
         # create condition for effect
         cond = self.create_condition(eff[0])
 
-        #TODO evtl schoener machen mit dem bool float etc. kram
+        # RHBP effects only differentiate between bool and not bool, so this
+        # setup should be sufficient
         if eff[2] == 'bool':
             return [cond, eff[1], bool]
-        elif eff[2] == 'float':
+        else:
             return [cond, eff[1], float]
 
     def delete_components(self):

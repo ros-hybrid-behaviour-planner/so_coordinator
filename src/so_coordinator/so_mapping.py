@@ -14,6 +14,8 @@ from behaviour_components.goals import GoalBase, OfflineGoal, PublisherGoal
 from behaviour_components.sensors import PassThroughTopicSensor, \
     SimpleTopicSensor, DynamicSensor
 
+from rhbp_utils.knowledge_sensors import KnowledgeSensor, KnowledgeFactSensor
+
 from rhbp_selforga.behaviours import MoveBehaviour, TurnBehaviour, \
     DecisionBehaviour, DecisionStateBehaviour, SetStateBehaviour
 from rhbp_selforga.conditions import ChangeFloatCondition, \
@@ -56,6 +58,11 @@ SO_MAPPING = {
     'PassThroughTopicSensor': PassThroughTopicSensor,
     'SimpleTopicSensor': SimpleTopicSensor,
     'DynamicSensor': DynamicSensor,
+
+    # RHBP UTILS
+    # knowledge sensors
+    'KnowledgeSensor': KnowledgeSensor,
+    'KnowledgeFactSensor': KnowledgeFactSensor,
 
     # RHBP_SELFORGA COMPONENTS
     # Behaviours

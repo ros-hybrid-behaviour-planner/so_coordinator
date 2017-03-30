@@ -1,29 +1,124 @@
+# ChemotaxisGe - Example XXX
 ReachGoal: {
-  buffer: {chem: {} },
-  mechanisms: {chem: [ChemotaxisBalch, 'chem', {moving: False, static: True}]},
-  activators: {'bool': [BooleanActivator, {}],
-                           'lin': [LinearActivator, {'zeroActivationValue': 2.0, 'fullActivationValue': 0.0, 'minActivation': 0.0, 'maxActivation': 1.0}]},
-  sensors: {'goal': [GradientSensor, 'chem', {}],
-            'goal_reached': [GradientSensor, 'chem', {'sensor_type': 'goal'}],
-            'dist': [GradientSensor, 'chem', {'sensor_type': 'goal'}]},
-  conditions: {'goal': [VectorBoolCondition, 'goal', 'bool', False],
-               'goal_reached': [GoalBoolCondition, 'goal_reached', 'bool', False],
-               'dist': [VectorDistCondition, 'dist', 'lin', True]},
-  behaviours: {'chem': [MoveBehaviour, 'chem', {'effects': [[[None, 'dist'], -1.0, float], [[None, 'goal_reached'], 1.0, bool]]}]},
-  preconditions: {'chem': [[Negation, 'goal_reached'], [None, 'dist'], [None, 'goal']]},
-  goals: {'chem': [GoalBase, False, [[None, 'goal_reached']]]}
+  buffer: {bf_chem: {} },
+  mechanisms: {m_chem: [ChemotaxisGe, 'bf_chem', {moving: False, static: True}]},
+  activators: {a_bool: [BooleanActivator, {}],
+               a_lin: [LinearActivator, {zeroActivationValue: 2.0, fullActivationValue: 0.0, minActivation: 0.0, maxActivation: 1.0}]},
+  sensors: {s_goal: [GradientSensor, 'm_chem', {}],
+            s_goal_reached: [GradientSensor, 'm_chem', {sensor_type: goal}],
+            s_dist: [GradientSensor, 'm_chem', {sensor_type: goal}]},
+  conditions: {c_goal: [VectorBoolCondition, 's_goal', 'a_bool', False],
+               c_goal_reached: [GoalBoolCondition, 's_goal_reached', 'a_bool', False],
+               c_dist: [VectorDistCondition, 's_dist', 'a_lin', True]},
+  behaviours: {b_chem: [MoveBehaviour, 'm_chem', {effects: [[[None, 'c_dist'], -1.0, float], [[None, 'c_goal_reached'], 1.0, bool]]}]},
+  preconditions: {b_chem: [[Negation, 'c_goal_reached'], [None, 'c_dist'], [None, 'c_goal']]},
+  goals: {g_chem: [GoalBase, False, [[None, 'c_goal_reached']]]}
 }
 
-Flocking: {
-  buffer: {flocking: {view_distance: 2.0} },
-  mechanisms: {flocking: [FlockingRey, flocking, {maxvel: 0.75}],
-              chemotaxis: [ChemotaxisBalch, flocking, {maxvel: 0.25, moving: False, static: True} ]},
-  activators: {bool: [BooleanActivator, {} ] },
-  sensors: {flocking: [GradientSensor, [flocking, chemotaxis], {}] },
-  conditions: {flocking: [VectorBoolCondition, flocking, bool, False] },
-  behaviours: {flocking: [MoveBehaviour, [flocking, chemotaxis], {'effects': [[[None, flocking], -1.0, bool]] } ] },
-  preconditions: {flocking: [[None, flocking]] },
+# FlockingRey + Chemotaxis - Example XXX
+CollectiveExploration: {
+  buffer: {bf_flocking: {view_distance: 2.0} },
+  mechanisms: {m_flocking: [FlockingRey, 'bf_flocking', {maxvel: 0.75}],
+               m_chemotaxis: [ChemotaxisBalch, 'bf_flocking', {maxvel: 0.25, moving: False, static: True} ]},
+  activators: {a_bool: [BooleanActivator, {} ] },
+  sensors: {s_flocking: [GradientSensor, ['m_flocking', 'm_chemotaxis'], {}] },
+  conditions: {c_flocking: [VectorBoolCondition, 's_flocking', 'a_bool', False] },
+  behaviours: {b_flocking: [MoveBehaviour, ['m_flocking', 'm_chemotaxis'], {'effects': [[[None, 'c_flocking'], -1.0, bool]] } ] },
+  preconditions: {b_flocking: [[None, 'c_flocking']] },
   goals: { }
 }
+
+# FlockingRey - Example XXX
+FormationControl: {
+  buffer: {bf_flocking: {view_distance: 2.0} },
+  mechanisms: {m_flocking: [FlockingRey, 'bf_flocking', {maxvel: 1.00}]},
+  activators: {a_bool: [BooleanActivator, {} ] },
+  sensors: {s_flocking: [GradientSensor, 'm_flocking', {}] },
+  conditions: {c_flocking: [VectorBoolCondition, 's_flocking', 'a_bool', False] },
+  behaviours: {b_flocking: [MoveBehaviour, 'm_flocking', {effects: [[[None, 'c_flocking'], -1.0, bool]] } ] },
+  preconditions: {b_flocking: [[None, 'c_flocking']] },
+  goals: { }
+}
+
+# MorphogenesisBarycenter + ChemotaxisBalch - Example morphogenesissim.launch (rhbpSelforganizationTest)
+CircleFormation: {
+  buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0} },
+  mechanisms: { m_morph: [MorphogenesisBarycenter, 'bf_morph', {frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center} ],
+                m_chem: [ChemotaxisBalch, 'bf_morph', {moving: False, static: True, minvel: 1.0, frames: ['Center']}] },
+  activators: { a_bool: [BooleanActivator, {} ] },
+  sensors: { s_morph: [GradientSensor, 'm_morph', {sensor_type: value}],
+             s_value: [KnowledgeFactSensor, {pattern: [value, '*']}],
+             s_state: [GradientSensor, 'm_morph', {sensor_type: state} ],
+             s_last_state: [KnowledgeFactSensor, {pattern: [state, '*']}],
+             s_goal: [GradientSensor, 'm_chem', {}],
+             s_goal_reached: [GradientSensor, 'm_chem', {sensor_type: goal}] },
+  conditions: { c_morph: [ChangeFloatCondition, ['s_morph', 's_value'], 'a_bool', False],
+                c_state: [ChangeStringCondition, ['s_state', 's_last_state'], 'a_bool', False],
+                c_goal: [VectorBoolCondition, 's_goal', 'a_bool', False],
+                c_goal_reached: [GoalBoolCondition, 's_goal_reached', 'a_bool', False] },
+  behaviours: { b_morph: [DecisionBehaviour, 'm_morph', {effects: [[[None, 'c_morph'], -1.0, bool], [[None, 'c_state'], -1.0, bool], [[None, 'c_goal'], 1.0, bool]], value_key: value, state_key: state}],
+                b_chem: [MoveBehaviour, 'm_chem', {effects: [[[None, 'c_goal_reached'], 1.0, bool]], }] },
+  preconditions: {b_morph: [[Disjunction, [[None, 'c_morph'], [None, 'c_state']]]],
+                  b_chem: [[Negation, 'c_goal_reached'], [None, 'c_goal'], [Negation, [Disjunction, [[None, 'c_morph'], [None, 'c_state']]]]]},
+  goals: { g_morph: [GoalBase, False, [[None, 'c_goal_reached']]]}
+}
+
+
+
+
+# Exploration (each agent on its own) - Example XXX ==> Combine walk random with follow gradient
+RandomExploration: {
+
+}
+
+
+# GossipMax - Example XXX
+MaxValue: {
+
+}
+
+
+# MorphogenesisBarycenter - Example XXX
+FindBarycenter: {
+  buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0} },
+  mechanisms: { m_morph: [MorphogenesisBarycenter, 'bf_morph', {frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center}] },
+  activators: { a_bool: [BooleanActivator, {} ] },
+  sensors: { s_morph: [GradientSensor, 'm_morph', {sensor_type: value}],
+             s_value: [KnowledgeFactSensor, {pattern: [value, '*']}],
+             s_state: [GradientSensor, 'm_morph', {sensor_type: state} ],
+             s_last_state: [KnowledgeFactSensor, {pattern: [state, '*']}] },
+  conditions: { c_morph: [ChangeFloatCondition, ['s_morph', 's_value'], 'a_bool', False],
+                c_state: [ChangeStringCondition, ['s_state', 's_last_state'], 'a_bool', False] },
+  behaviours: { },
+  preconditions: { },
+  goals: { }
+}
+
+
+# Chemotaxis Collision Avoidance mechanism - Example XXX
+CollisionAvoidance: {
+
+}
+
+
+# Repulsion - Example XXX
+AvoidAgentCollisions: {
+
+}
+
+
+# RepulsionFernandez - Example XXX
+UniformDistribution: {
+
+}
+
+
+# Ant Foraging: Explore and Exploit - Example XXX
+Foraging: {
+
+}
+
+
+
 
 

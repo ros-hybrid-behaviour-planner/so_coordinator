@@ -10,6 +10,7 @@ project(so_coordinator)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   rhbp_core
+  rhbp_utils
   so_data
   rhbp_selforga
 )
