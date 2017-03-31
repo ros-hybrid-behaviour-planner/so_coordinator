@@ -141,10 +141,13 @@ class SOComponents(object):
                     behaviours[b][1]['mechanism'] = self.mechanisms[
                         behaviours[b][1]['mechanism']]
 
+            if 'motion_topic' in behaviours[b][1].keys():
+                if behaviours[b][1]['motion_topic']:
+                    behaviours[b][1]['motion_topic'] = self.motion_topic
+
             self.behaviours[b] = self.mapping.get(behaviours[b][0])(
                 name=b+self.id+'behaviour',
                 plannerPrefix=self.planner_prefix,
-                motion_topic=self.motion_topic,
                 **behaviours[b][1])
 
         # add preconditions
