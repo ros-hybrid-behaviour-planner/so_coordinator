@@ -133,7 +133,7 @@ class SOComponents(object):
                 behaviours[b][1]['state_key'] += self.id
 
             if 'mechanism' in behaviours[b][1].keys():
-                if isinstance(behaviours[b][1], list):
+                if isinstance(behaviours[b][1]['mechanism'], list):
                     behaviours[b][1]['mechanism'] = [self.mechanisms[m] for m
                                                      in behaviours[b][1]
                                                      ['mechanism']]
