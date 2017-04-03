@@ -20,15 +20,11 @@ class SoCoordinator(NetworkBehavior):
     """
 
     # requires execution steps = True is super important!
-    def __init__(self, effects, id=1, so_goal='ReachGoal',
+    def __init__(self, effects, so_goal, id=1,
                  expert_knowledge='so_knowledge.yaml',
-                 components_class=SOComponents,
-                 name='SoCoordinator',
-                 mapping=SO_MAPPING,
-                 requires_execution_steps=True,
-                 pose_frame='robot',
-                 motion_topic='',
-                 **kwargs):
+                 components_class=SOComponents, name='SoCoordinator',
+                 mapping=SO_MAPPING, requires_execution_steps=True,
+                 pose_frame='robot', motion_topic='', **kwargs):
         """
         initialization
         :param effect:
@@ -51,6 +47,7 @@ class SoCoordinator(NetworkBehavior):
                                             requires_execution_steps,
                                             **kwargs)
 
+        # create SO components
         components = create_from_yaml(os.path.join(os.path.dirname(__file__),
                                                    expert_knowledge),
                                       id,

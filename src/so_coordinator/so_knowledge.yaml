@@ -28,15 +28,18 @@ CollectiveExploration: {
   goals: { }
 }
 
-# FlockingRey - Example XXX
+# FlockingRey - Example 6 of flockingrey_single/multi_sim.launch
 FormationControl: {
   buffer: {bf_flocking: {view_distance: 2.0} },
-  mechanisms: {m_flocking: [FlockingRey, {buffer: 'bf_flocking', maxvel: 1.00}]},
+  mechanisms: {m_flocking: [FlockingRey, {buffer: 'bf_flocking', maxvel: 1.0}],
+               m_random: [Exploration, {buffer: 'bf_flocking', minvel: 0.5}]},
   activators: {a_bool: [BooleanActivator, {} ] },
   sensors: {s_flocking: [GradientSensor, {mechanism: 'm_flocking'}] },
   conditions: {c_flocking: [VectorBoolCondition, {sensor: 's_flocking', activator: 'a_bool'}, False] },
-  behaviours: {b_flocking: [MoveBehaviour, {mechanism: 'm_flocking', motion_topic: True, effects: [[[None, 'c_flocking'], -1.0, bool]] } ] },
-  preconditions: {b_flocking: [[None, 'c_flocking']] },
+  behaviours: {b_flocking: [MoveBehaviour, {mechanism: 'm_flocking', motion_topic: True, effects: [[[None, 'c_flocking'], -1.0, bool]] } ],
+               b_random: [MoveBehaviour, {mechanism: 'm_random', motion_topic: True, effects: [[[None, 'c_flocking'], 1.0, bool]]}]},
+  preconditions: {b_flocking: [[None, 'c_flocking']],
+                  b_random: [[Negation, 'c_flocking']]},
   goals: { }
 }
 
