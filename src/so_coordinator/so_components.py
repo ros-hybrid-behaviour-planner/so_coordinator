@@ -94,7 +94,8 @@ class SOComponents(object):
                 sensors[s][1]['pattern'][0] += self.id
 
             self.sensors[s] = self.mapping.get(sensors[s][0])(
-                name=s + self.id + 'sensor', **sensors[s][1])
+                name=s + self.id + 'sensor_' + self.planner_prefix,
+                **sensors[s][1])
 
         # create condition
         conditions = specs.get('conditions')
@@ -111,7 +112,8 @@ class SOComponents(object):
                     conditions[c][1]['activator']]
 
             self.conditions[c] = self.mapping.get(conditions[c][0])(
-                name=c + self.id + 'condition', **conditions[c][1])
+                name=c + self.id + 'condition_' + self.planner_prefix,
+                **conditions[c][1])
 
             if conditions[c][2]:
                 self.conditions[c].optional = True
@@ -146,7 +148,7 @@ class SOComponents(object):
                     behaviours[b][1]['motion_topic'] = self.motion_topic
 
             self.behaviours[b] = self.mapping.get(behaviours[b][0])(
-                name=b+self.id+'behaviour',
+                name=b+self.id+'behaviour_' + self.planner_prefix,
                 plannerPrefix=self.planner_prefix,
                 **behaviours[b][1])
 
@@ -164,8 +166,8 @@ class SOComponents(object):
                                              goals[g][1]['conditions']]
 
             self.goals[g] = self.mapping.get(goals[g][0])(
-                name=g+self.id+'goal', plannerPrefix=self.planner_prefix,
-                **goals[g][1])
+                name=g+self.id+'goal_' + self.planner_prefix,
+                plannerPrefix=self.planner_prefix, **goals[g][1])
 
     def create_condition(self, lst):
         """

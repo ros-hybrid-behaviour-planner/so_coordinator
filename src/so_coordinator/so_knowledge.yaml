@@ -129,6 +129,25 @@ Foraging: {
   goals: { goal: [GoalBase, {permanent: False, conditions: [[None, 'c_food']]}]}
 }
 
+# Exploration (each agent on its own) - elements of Example quorum_single/multi_sim.launch
+IndividualExploration: {
+  buffer: {bf_ex: {view_distance: 2.0} },
+  mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_ex', static: True, moving: True, minvel: 0.5}],
+               m_ex: [Exploration, {buffer: 'bf_ex', minvel: 0.5}],
+               m_rep: [CollisionAvoidance, {buffer: 'bf_ex', moving: True, static: False, maxvel: 0.5}]},
+  activators: { a_bool: [BooleanActivator, {} ] },
+  sensors: {s_grad: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}],
+            s_grad_reached: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal, initial_value: True}] },
+  conditions: {c_grad: [VectorBoolCondition, {sensor: 's_grad', activator: 'a_bool'}, False],
+               c_grad_reached: [GoalBoolCondition, {sensor: 's_grad_reached', activator: 'a_bool'}, False] },
+  behaviours: {b_chem: [MoveBehaviour, {mechanism: 'm_chem', motion_topic: True, effects: [[[None, 'c_grad_reached'], 1.0, bool]]}],
+               b_ex: [MoveBehaviour, {mechanism: ['m_ex', 'm_rep'], motion_topic: True, effects: [[[None, 'c_grad'], 1.0, bool]]}]},
+  preconditions: {b_chem: [[Conjunction, [[None, 'c_grad'], [Negation, 'c_grad_reached']]]],
+                  b_ex: [[Conjunction, [[Negation, 'c_grad'], [Negation, 'c_grad_reached']]]] },
+  goals: {g_chem: [GoalBase, {permanent: False, conditions: [[None, 'c_grad_reached']]}]}
+}
+
+
 
 
 
@@ -146,13 +165,10 @@ FindBarycenter: {
              s_last_state: [KnowledgeFactSensor, {pattern: [state, '*']}] },
   conditions: { c_morph: [ChangeFloatCondition, {sensors: ['s_morph', 's_value'], activator: 'a_bool'}, False],
                 c_state: [ChangeStringCondition, {sensors: ['s_state', 's_last_state'], activator: 'a_bool'}, False] },
-  behaviours: [ ],
+  behaviours: { },
   preconditions: { },
   goals: { }
 }
-
-# Exploration (each agent on its own) - Example XXX ==> Combine walk random with follow gradient
-RandomExploration: { }
 
 
 # GossipMax - Example XXX
