@@ -33,7 +33,8 @@ from so_data.foraging import ForagingDecision, DepositPheromones, \
     Exploitation, Exploration, STATE
 from so_data.repulsion import RepulsionFernandez, RepulsionGradient
 from so_data.sobuffer import SoBuffer, AGGREGATION
-from so_data.supplements import DepositPheromonesMin, DepositPheromonesRandom
+from so_data.supplements import DepositPheromonesMin, DepositPheromonesRandom, \
+    SpreadGradient
 
 
 SO_MAPPING = {
@@ -117,5 +118,6 @@ SO_MAPPING = {
     'AGGREGATION': AGGREGATION,
     # supplements
     'DepositPheromonesMin': DepositPheromonesMin,
-    'DepositPheromonesRandom': DepositPheromonesRandom
+    'DepositPheromonesRandom': DepositPheromonesRandom,
+    'SpreadGradient': SpreadGradient
 }
