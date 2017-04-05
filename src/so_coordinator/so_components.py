@@ -52,15 +52,17 @@ class SOComponents(object):
         """
         Method to dynamically create required components for self-organization
         based on specification
+        stores components in dictionaries defined in init
         :param specs: specification of RHBP components
         """
+
         # create buffer
-        buffer = specs.get('buffer')
-        for b in buffer.keys():
+        bffr = specs.get('buffer')
+        for b in bffr.keys():
             self.buffer[b] = self.mapping.get('SoBuffer')(id=self.id,
                                                           pose_frame=
                                                           self.pose_frame,
-                                                          **buffer[b])
+                                                          **bffr[b])
 
         # create mechanisms
         mechanisms = specs.get('mechanisms')
@@ -72,13 +74,13 @@ class SOComponents(object):
             self.mechanisms[m] = self.mapping.get(mechanisms[m][0])(
                 **mechanisms[m][1])
 
-        # create activator
+        # create activators
         activators = specs.get('activators')
         for a in activators.keys():
             self.activators[a] = self.mapping.get(activators[a][0])(
                 **activators[a][1])
 
-        # create sensor
+        # create sensors
         sensors = specs.get('sensors')
         for s in sensors.keys():
             # adjust mechanism parameter
@@ -96,12 +98,13 @@ class SOComponents(object):
             self.sensors[s] = self.mapping.get(sensors[s][0])(
                 name=s + self.id + 'sensor', **sensors[s][1])
 
-        # create condition
+        # create conditions
         conditions = specs.get('conditions')
         for c in conditions.keys():
             if 'sensor' in conditions[c][1].keys():
                 conditions[c][1]['sensor'] = self.sensors[conditions[c][1]
                                                           ['sensor']]
+            # Multi-Sensor-Conditions
             elif 'sensors' in conditions[c][1].keys():
                 conditions[c][1]['sensors'] = [self.sensors[s] for s in
                                                conditions[c][1]['sensors']]
@@ -168,21 +171,32 @@ class SOComponents(object):
 
     def create_condition(self, lst):
         """
-        method to specify conditions for
-        :param lst: list of conditions
-        :return: conditions
+        method to create conditions for goals and preconditions
+        :param lst: list of conditions, each condition has the form
+                    [modifier, condition_key], e.g. [Negation, c_goal]
+        :return: condition object
         """
-        # solely return condition object
+
+        condition = None
+
+        # simple condition
         if lst[0] == 'None':
             condition = self.conditions[lst[1]]
-        # return nested conditions (e.g. Negation, Disjunction)
+
+        # nested conditions
         else:
+            # several connected conditions, e.g. Disjunction, Conjunction
+            # e.g. [Disjunction, [[None, 'c_goal'], [None, 'c_dist']]]
             if all(isinstance(elem, list) for elem in lst[1]):
                 sub = [self.create_condition(l) for l in lst[1]]
                 condition = self.mapping.get(lst[0])(*sub)
+
+            # one condition with modifier, e.g. Negation
+            # e.g. [Negation, [None, c_goal]]
             elif isinstance(lst[1], list):
                 subcond = self.create_condition(lst[1])
                 condition = self.mapping.get(lst[0])(subcond)
+            # e.g. [Negation, c_goal]
             else:
                 condition = self.mapping.get(lst[0])(self.conditions[lst[1]])
 
@@ -190,22 +204,20 @@ class SOComponents(object):
 
     def create_effect(self, eff):
         """
-        method to create effect parameter to be handed over to behaviours
+        method to create effect list as required to be handed over to
+        behaviours
         :return: list [condition, +/- 1, type]
         """
-        # create condition for effect
-        cond = self.conditions[eff[0]]
 
-        # RHBP effects only differentiate between bool and not bool, so this
-        # setup should be sufficient
+        # RHBP effects only differentiate between bool and not bool
         if eff[2] == 'bool':
-            return [cond, eff[1], bool]
+            return [self.conditions[eff[0]], eff[1], bool]
         else:
-            return [cond, eff[1], float]
+            return [self.conditions[eff[0]], eff[1], float]
 
     def delete_components(self):
         """
-        delete all stored components
+        method to delete all stored components
         """
         self.buffer.clear()
         self.mechanisms.clear()
@@ -221,7 +233,8 @@ def create_from_yaml(file_path, id, components_class=SOComponents,
                      motion_topic='', pose_frame='robot'):
     """
     create SO components from yaml specification
-    either hand over yaml file with one specification only or specify so_goal
+    either hand over yaml file with one specification only or specify
+    so_goal/key
     :param file_path: path to yaml file
     :param id: id of the robot
     :param components_class: factory to create RHBP components
@@ -233,7 +246,7 @@ def create_from_yaml(file_path, id, components_class=SOComponents,
     :return: components_class instance containing required RHBP components
     """
 
-    # open yaml file
+    # load yaml file
     data = None
 
     with open(file_path, 'r') as stream:
