@@ -24,7 +24,7 @@ from rhbp_selforga.conditions import ChangeFloatCondition, \
 from rhbp_selforga.gradientsensor import GradientSensor, SENSOR
 
 from so_data.chemotaxis import ChemotaxisGe, ChemotaxisBalch, \
-    CollisionAvoidance, FollowAll, AvoidAll, FollowMax, FollowMin, \
+    CollisionAvoidance, FollowAll, AvoidAll, FollowStrongest, FollowMin, \
     FollowMinReach, FollowMaxReach
 from so_data.decisions import MorphogenesisBarycenter, GossipMax, Quorum
 from so_data.flocking import Flocking
@@ -92,7 +92,7 @@ SO_MAPPING = {
     'CollisionAvoidance': CollisionAvoidance,
     'FollowAll': FollowAll,
     'AvoidAll': AvoidAll,
-    'FollowMax': FollowMax,
+    'FollowStrongest': FollowStrongest,
     'FollowMin': FollowMin,
     'FollowMinReach': FollowMinReach,
     'FollowMaxReach': FollowMaxReach,
