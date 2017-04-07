@@ -15,9 +15,9 @@ from behaviour_components.activators import MultiSensorCondition, \
     LinearActivator
 from behaviour_components.conditions import Conjunction, Negation
 from behaviour_components.goals import GoalBase
-from rhbp_selforga.behaviours import MoveBehaviour
+from rhbp_selforga.behaviours import MoveBehaviour, DecisionBehaviour
 from rhbp_selforga.conditions import VectorDistCondition, GoalBoolCondition, \
-    VectorBoolCondition
+    VectorBoolCondition, ChangeFloatCondition
 from rhbp_selforga.gradientsensor import GradientSensor, SENSOR
 from so_data.chemotaxis import ChemotaxisGe
 from so_data.sobuffer import SoBuffer
@@ -34,28 +34,30 @@ class SoComponentsTest(unittest.TestCase):
         """
         super(SoComponentsTest, self).__init__(*args, **kwargs)
 
-    def test_init(self):
+    def test_buffer(self):
         """
-        method to test initialization of components
-        :return:
+        method to test initialization of buffer
         """
-
-        # manager to register components at
-
         # buffer created with specified parameter
         self.assertEqual(len(components.buffer), 1)
         self.assertEqual(components.buffer['bf_chem'].view_distance, 2.0)
         self.assertTrue(isinstance(components.buffer['bf_chem'], SoBuffer),
                         "Not the correct object")
 
-        # mechanisms
+    def test_mechanisms(self):
+        """
+        method to test initialization of mechanisms
+        """
         self.assertEqual(len(components.mechanisms), 1)
         self.assertEqual(components.mechanisms['m_chem']._buffer,
                          components.buffer['bf_chem'])
         self.assertTrue(isinstance(components.mechanisms['m_chem'],
                                    ChemotaxisGe), "Not the correct object")
 
-        # activator
+    def test_activators(self):
+        """
+        method to test initialization of activators
+        """
         self.assertEqual(len(components.activators), 2)
         self.assertTrue('a_bool' in components.activators.keys())
         self.assertEqual(components.activators['a_lin'].zeroActivationValue,
@@ -65,15 +67,21 @@ class SoComponentsTest(unittest.TestCase):
         self.assertTrue(isinstance(components.activators['a_lin'],
                                    LinearActivator), "Not the correct object")
 
-        # sensors
+    def test_sensors(self):
+        """
+        method to test initialization of sensors
+        """
         self.assertEqual(len(components.sensors), 3)
         self.assertEqual(components.sensors['s_goal'].mechanism,
                          components.mechanisms['m_chem'])
         self.assertTrue(isinstance(components.sensors['s_goal'],
                                    GradientSensor), "Not the correct object")
 
-        # conditions
-        self.assertEqual(len(components.conditions), 3)
+    def test_conditions(self):
+        """
+        method to test initialization of conditions
+        """
+        self.assertEqual(len(components.conditions), 4)
         self.assertEqual(components.conditions['c_goal'].sensor,
                          components.sensors['s_goal'])
         self.assertEqual(components.conditions['c_goal'].activator,
@@ -94,20 +102,39 @@ class SoComponentsTest(unittest.TestCase):
                                    VectorBoolCondition),
                         "Not the correct object")
 
+        # Multi Sensor Condition
+        self.assertTrue(isinstance(components.conditions['c_morph'],
+                                   ChangeFloatCondition),
+                        "Not the correct object")
+        self.assertEqual(components.conditions['c_morph'].sensors,
+                         [components.sensors['s_goal'],
+                          components.sensors['s_dist']])
+
+    def test_behaviours(self):
+        """
+        method to test initialization of behaviours
+        """
         # behaviours
-        self.assertEqual(len(components.behaviours), 1)
+        self.assertEqual(len(components.behaviours), 2)
         self.assertEqual(components.behaviours['b_chem'].mechanism,
                          components.mechanisms['m_chem'])
+        self.assertTrue(isinstance(components.behaviours['b_chem'],
+                                   MoveBehaviour), "Not the correct object")
 
         # preconditions
         self.assertEqual(components.behaviours['b_chem']._preconditions[1],
                          components.conditions['c_dist'])
         self.assertEqual(len(components.behaviours['b_chem']._preconditions),
                          3)
-        self.assertTrue(isinstance(components.behaviours['b_chem'],
-                                   MoveBehaviour), "Not the correct object")
 
-        # goals
+        self.assertTrue(isinstance(components.behaviours['b_dec'],
+                                   DecisionBehaviour),
+                        "Not the correct object")
+
+    def test_goals(self):
+        """
+        method to test initialization of goals
+        """
         self.assertEqual(len(components.goals), 1)
         self.assertEqual(components.goals['g_chem']._conditions[0],
                          components.conditions['c_goal_reached'])
@@ -185,14 +212,23 @@ if __name__ == '__main__':
                                                     False],
                                  'c_dist': ['VectorDistCondition',
                                             {'sensor': 's_dist',
-                                             'activator': 'a_lin'}, True]},
+                                             'activator': 'a_lin'}, True],
+                                 'c_morph': ['ChangeFloatCondition',
+                                             {'sensors': ['s_goal', 's_dist'],
+                                              'activator': 'a_bool'}, False]},
                   'behaviours': {'b_chem': ['MoveBehaviour',
                                             {'mechanism': 'm_chem',
                                              'motion_topic': True,
                                              'effects': [['c_dist', -1.0,
                                                           'float'],
                                                          ['c_goal_reached',
-                                                          1.0, 'bool']]}]},
+                                                          1.0, 'bool']]}],
+                                 'b_dec':  ['DecisionBehaviour',
+                                            {'mechanism': 'm_chem',
+                                             'effects': [['c_morph', -1.0, bool],
+                                                         ['c_goal', 1.0, bool]],
+                                             'value_key': 'value',
+                                             'state_key': 'state'}]},
                   'preconditions': {'b_chem': [['Negation', 'c_goal_reached'],
                                                ['None', 'c_dist'],
                                                ['None', 'c_goal']]},
