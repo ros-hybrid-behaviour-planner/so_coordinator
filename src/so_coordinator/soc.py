@@ -19,11 +19,12 @@ class SoCoordinator(NetworkBehavior):
     problems
     """
 
-    def __init__(self, effects, so_goal, id=1,
+    def __init__(self, effects, so_goal, id='robot1',
                  expert_knowledge='so_knowledge.yaml',
                  components_class=SOComponents, name='SoCoordinator',
                  mapping=SO_MAPPING, requires_execution_steps=True,
-                 pose_frame='robot', motion_topic='', **kwargs):
+                 params=None, **kwargs):
+
         """
         initialization
         :param effects: effects of SoCoordinator (on higher level)
@@ -38,8 +39,6 @@ class SoCoordinator(NetworkBehavior):
         :param mapping: dictionary mapping strings to classes
         :param requires_execution_steps: whether the execution steps should be
                                          caused from the parent manager or not.
-        :param pose_frame: header frame ID indicating robot pose gradients
-        :param motion_topic: motion topic of the agent
         :param kwargs: keyword arguments
         """
 
@@ -57,7 +56,6 @@ class SoCoordinator(NetworkBehavior):
                                       id,
                                       planner_prefix=self.get_manager_prefix(),
                                       so_goal=so_goal,
-                                      motion_topic=motion_topic,
+                                      params=params,
                                       mapping=mapping,
-                                      components_class=components_class,
-                                      pose_frame=pose_frame)
+                                      components_class=components_class)

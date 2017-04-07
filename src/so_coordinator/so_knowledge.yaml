@@ -1,6 +1,6 @@
 # ChemotaxisGe - Example XXX
 ReachGoal: {
-  buffer: {bf_chem: {} },
+  buffer: {bf_chem: {param_keys: [pose_frame]} },
   mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_chem', moving: False, static: True}]},
   activators: {a_bool: [BooleanActivator, {}],
                a_lin: [LinearActivator, {zeroActivationValue: 2.0, fullActivationValue: 0.0, minActivation: 0.0, maxActivation: 1.0}]},
@@ -10,34 +10,34 @@ ReachGoal: {
   conditions: {c_goal: [VectorBoolCondition, {sensor: 's_goal', activator: 'a_bool'}, False],
                c_goal_reached: [GoalBoolCondition, {sensor: 's_goal_reached', activator: 'a_bool'}, False],
                c_dist: [VectorDistCondition, {sensor: 's_dist', activator: 'a_lin'}, True]},
-  behaviours: {b_chem: [MoveBehaviour, {mechanism: 'm_chem', motion_topic: True, effects: [['c_dist', -1.0, float], ['c_goal_reached', 1.0, bool]]}]},
+  behaviours: {b_chem: [MoveBehaviour, {mechanism: 'm_chem', param_keys: [motion_topic], effects: [['c_dist', -1.0, float], ['c_goal_reached', 1.0, bool]]}]},
   preconditions: {b_chem: [[Negation, 'c_goal_reached'], [None, 'c_dist'], [None, 'c_goal']]},
   goals: {g_chem: [GoalBase, {permanent: False, conditions: [[None, 'c_goal_reached']]}]}
 }
 
 # FlockingRey + Chemotaxis - Example XXX
 CollectiveExploration: {
-  buffer: {bf_flocking: {view_distance: 2.0} },
+  buffer: {bf_flocking: {view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: {m_flocking: [FlockingRey, {buffer: 'bf_flocking', maxvel: 0.75}],
                m_chemotaxis: [ChemotaxisBalch, {buffer: 'bf_flocking', maxvel: 0.25, moving: False, static: True} ]},
   activators: {a_bool: [BooleanActivator, {} ] },
   sensors: {s_flocking: [GradientSensor, {mechanism: ['m_flocking', 'm_chemotaxis']}] },
   conditions: {c_flocking: [VectorBoolCondition, {sensor: 's_flocking', activator: 'a_bool'}, False] },
-  behaviours: {b_flocking: [MoveBehaviour, {mechanism: ['m_flocking', 'm_chemotaxis'], motion_topic: True, 'effects': [['c_flocking', -1.0, bool]] } ] },
+  behaviours: {b_flocking: [MoveBehaviour, {mechanism: ['m_flocking', 'm_chemotaxis'], param_keys: [motion_topic], 'effects': [['c_flocking', -1.0, bool]] } ] },
   preconditions: {b_flocking: [[None, 'c_flocking']] },
   goals: { }
 }
 
 # FlockingRey - Example 6 of flockingrey_single/multi_sim.launch
 FormationControl: {
-  buffer: {bf_flocking: {view_distance: 2.0} },
+  buffer: {bf_flocking: {view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: {m_flocking: [FlockingRey, {buffer: 'bf_flocking', maxvel: 1.0}],
                m_random: [Exploration, {buffer: 'bf_flocking', minvel: 0.5}]},
   activators: {a_bool: [BooleanActivator, {} ] },
   sensors: {s_flocking: [GradientSensor, {mechanism: 'm_flocking'}] },
   conditions: {c_flocking: [VectorBoolCondition, {sensor: 's_flocking', activator: 'a_bool'}, False] },
-  behaviours: {b_flocking: [MoveBehaviour, {mechanism: 'm_flocking', motion_topic: True, effects: [['c_flocking', -1.0, bool]] } ],
-               b_random: [MoveBehaviour, {mechanism: 'm_random', motion_topic: True, effects: [['c_flocking', 1.0, bool]]}]},
+  behaviours: {b_flocking: [MoveBehaviour, {mechanism: 'm_flocking', param_keys: [motion_topic], effects: [['c_flocking', -1.0, bool]] } ],
+               b_random: [MoveBehaviour, {mechanism: 'm_random', param_keys: [motion_topic], effects: [['c_flocking', 1.0, bool]]}]},
   preconditions: {b_flocking: [[None, 'c_flocking']],
                   b_random: [[Negation, 'c_flocking']]},
   goals: { }
@@ -45,7 +45,7 @@ FormationControl: {
 
 # MorphogenesisBarycenter + ChemotaxisBalch - Example morphogenesissim.launch (rhbpSelforganizationTest)
 CircleFormation: {
-  buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0} },
+  buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: { m_morph: [MorphogenesisBarycenter, {buffer: 'bf_morph', frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center} ],
                 m_chem: [ChemotaxisBalch, {buffer: 'bf_morph', moving: False, static: True, minvel: 1.0, frames: ['Center']}] },
   activators: { a_bool: [BooleanActivator, {} ] },
@@ -60,7 +60,7 @@ CircleFormation: {
                 c_goal: [VectorBoolCondition, {sensor: 's_goal', activator: 'a_bool'}, False],
                 c_goal_reached: [GoalBoolCondition, {sensor: 's_goal_reached', activator: 'a_bool'}, False] },
   behaviours: { b_morph: [DecisionBehaviour, {mechanism: 'm_morph', effects: [['c_morph', -1.0, bool], ['c_state', -1.0, bool], ['c_goal', 1.0, bool]], value_key: value, state_key: state}],
-                b_chem: [MoveBehaviour, {mechanism: 'm_chem', motion_topic: True, effects: [['c_goal_reached', 1.0, bool]], }] },
+                b_chem: [MoveBehaviour, {mechanism: 'm_chem', param_keys: [motion_topic], effects: [['c_goal_reached', 1.0, bool]], }] },
   preconditions: {b_morph: [[Disjunction, [[None, 'c_morph'], [None, 'c_state']]]],
                   b_chem: [[Negation, 'c_goal_reached'], [None, 'c_goal'], [Negation, [Disjunction, [[None, 'c_morph'], [None, 'c_state']]]]]},
   goals: { g_morph: [GoalBase, {permanent: False, conditions: [[None, 'c_goal_reached']]}]}
@@ -68,8 +68,8 @@ CircleFormation: {
 
 # Ant Foraging: Explore and Exploit - Example foraging_multi_sim.launch / foraging_single_sim.launch
 Foraging: {
-  buffer: { bf_pheromone: {view_distance: 1.5, min_diffusion: 0.3, aggregation_distance: 0.1, store_all: False, framestorage: ['Pheromone', 'robot'], ev_thread: True, ev_time: 1},
-            bf_gradient: {view_distance: 1.5, aggregation_distance: 0.1, store_all: False, ev_thread: True, ev_time: 1, framestorage: ['Nest', 'Food', 'robot']} },
+  buffer: { bf_pheromone: {view_distance: 1.5, min_diffusion: 0.3, aggregation_distance: 0.1, store_all: False, framestorage: ['Pheromone', 'robot'], ev_thread: True, ev_time: 1, param_keys: [pose_frame]},
+            bf_gradient: {view_distance: 1.5, aggregation_distance: 0.1, store_all: False, ev_thread: True, ev_time: 1, framestorage: ['Nest', 'Food', 'robot'], param_keys: [pose_frame]} },
   mechanisms: { m_repulsion: [CollisionAvoidance, {buffer: 'bf_gradient', moving: True, static: False, maxvel: 0.5}],
                 m_deposit_pheromones: [DepositPheromones, {buffer: 'bf_gradient', frames: ['Nest'], moving: True, minvel: 0.5, maxvel: 1.0, ev_factor: 0.9, ev_time: 5}],
                 m_return_nest: [ChemotaxisGe, {buffer: 'bf_gradient', moving: True, static: True, frames: ['Nest'], minvel: 0.5, maxvel: 1.0}],
@@ -108,12 +108,12 @@ Foraging: {
                 b_no_trail: [SetStateBehaviour, {state: 'None', state_key: state, effects: [['c_none', -1.0, bool]]}],
                 b_max_dist: [SetStateBehaviour, {state: 'None', state_key: state, effects: [['c_none', -1.0, bool]]}],
                 b_no_state: [SetStateBehaviour, {state: 'None', state_key: state, effects: [['c_none', -1.0, bool]]}],
-                b_return: [MoveBehaviour, {mechanism: 'm_return_nest', motion_topic: True, effects: [['c_nest_reached', 1.0, bool]]}],
-                b_deposit: [MoveBehaviour, {mechanism: 'm_deposit_pheromones', motion_topic: True, effects: [['c_nest_reached', 1.0, bool]]}],
-                b_follow_food: [MoveBehaviour, {mechanism: 'm_follow_food', motion_topic: True, effects: [['c_food_reached', 1.0, bool]]}],
-                b_exploit: [MoveBehaviour, {mechanism: ['m_exploitation', 'm_repulsion'], motion_topic: True, effects: [['c_food', 1.0, bool]]}],
-                b_turn: [TurnBehaviour, {mechanism: 'm_exploitation', motion_topic: True, effects: [['c_trail', 1.0, bool]]}],
-                b_explore: [MoveBehaviour, {mechanism: ['m_exploration', 'm_repulsion'], motion_topic: True, effects: [['c_food', 1.0, bool]]}] },
+                b_return: [MoveBehaviour, {mechanism: 'm_return_nest', param_keys: [motion_topic], effects: [['c_nest_reached', 1.0, bool]]}],
+                b_deposit: [MoveBehaviour, {mechanism: 'm_deposit_pheromones', param_keys: [motion_topic], effects: [['c_nest_reached', 1.0, bool]]}],
+                b_follow_food: [MoveBehaviour, {mechanism: 'm_follow_food', param_keys: [motion_topic], effects: [['c_food_reached', 1.0, bool]]}],
+                b_exploit: [MoveBehaviour, {mechanism: ['m_exploitation', 'm_repulsion'], param_keys: [motion_topic], effects: [['c_food', 1.0, bool]]}],
+                b_turn: [TurnBehaviour, {mechanism: 'm_exploitation', param_keys: [motion_topic], effects: [['c_trail', 1.0, bool]]}],
+                b_explore: [MoveBehaviour, {mechanism: ['m_exploration', 'm_repulsion'], param_keys: [motion_topic], effects: [['c_food', 1.0, bool]]}] },
   preconditions: {b_decision: [[None, 'c_nest_reached'], [Disjunction, [[None, 'c_return'], [None, 'c_none']]]],
                   b_return_state: [[None, 'c_food_reached'], [Negation, 'c_return']],
                   b_lost: [[None, 'c_exploit'], [Negation, 'c_food'], [Negation, 'c_food_reached'], [Negation, 'c_nest_reached'], [Negation, 'c_trail']],
@@ -131,7 +131,7 @@ Foraging: {
 
 # Exploration (each agent on its own) - elements of Example quorum_single/multi_sim.launch
 IndividualExploration: {
-  buffer: {bf_ex: {view_distance: 2.0} },
+  buffer: {bf_ex: {view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_ex', static: True, moving: True, minvel: 0.5}],
                m_ex: [Exploration, {buffer: 'bf_ex', minvel: 0.5}],
                m_rep: [CollisionAvoidance, {buffer: 'bf_ex', moving: True, static: False, maxvel: 0.5}]},
@@ -140,8 +140,8 @@ IndividualExploration: {
             s_grad_reached: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal, initial_value: True}] },
   conditions: {c_grad: [VectorBoolCondition, {sensor: 's_grad', activator: 'a_bool'}, False],
                c_grad_reached: [GoalBoolCondition, {sensor: 's_grad_reached', activator: 'a_bool'}, False] },
-  behaviours: {b_chem: [MoveBehaviour, {mechanism: 'm_chem', motion_topic: True, effects: [['c_grad_reached', 1.0, bool]]}],
-               b_ex: [MoveBehaviour, {mechanism: ['m_ex', 'm_rep'], motion_topic: True, effects: [['c_grad', 1.0, bool]]}]},
+  behaviours: {b_chem: [MoveBehaviour, {mechanism: 'm_chem', param_keys: [motion_topic], effects: [['c_grad_reached', 1.0, bool]]}],
+               b_ex: [MoveBehaviour, {mechanism: ['m_ex', 'm_rep'], param_keys: [motion_topic], effects: [['c_grad', 1.0, bool]]}]},
   preconditions: {b_chem: [[Conjunction, [[None, 'c_grad'], [Negation, 'c_grad_reached']]]],
                   b_ex: [[Conjunction, [[Negation, 'c_grad'], [Negation, 'c_grad_reached']]]] },
   goals: {g_chem: [GoalBase, {permanent: False, conditions: [[None, 'c_grad_reached']]}]}
@@ -156,7 +156,7 @@ IndividualExploration: {
 
 # MorphogenesisBarycenter - Example XXX
 FindBarycenter: {
-  buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0} },
+  buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: { m_morph: [MorphogenesisBarycenter, {buffer: 'bf_morph', frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center}] },
   activators: { a_bool: [BooleanActivator, {} ] },
   sensors: { s_morph: [GradientSensor, {mechanism: 'm_morph', sensor_type: value}],
@@ -169,7 +169,6 @@ FindBarycenter: {
   preconditions: { },
   goals: { }
 }
-
 
 # GossipMax - Example XXX
 MaxValue: { }

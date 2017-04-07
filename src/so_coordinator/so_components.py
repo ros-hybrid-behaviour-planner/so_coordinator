@@ -18,7 +18,7 @@ class SOComponents(object):
     """
 
     def __init__(self, specs, id, planner_prefix='', mapping=SO_MAPPING,
-                 motion_topic=None, pose_frame='robot'):
+                 params=None):
         """
         initialization of class
         :param specs: specification of RHBP components
@@ -30,11 +30,10 @@ class SOComponents(object):
         """
 
         # parameters of SOComponents instance
-        self.pose_frame = pose_frame
-        self.id = self.pose_frame + str(id)
-        self.planner_prefix = planner_prefix
+        self.id = id
+        self.params = params
         self.mapping = mapping
-        self.motion_topic = motion_topic
+        self.planner_prefix = planner_prefix
 
         # storage for RHBP components
         self.buffer = {}
@@ -59,9 +58,13 @@ class SOComponents(object):
         # create buffer
         bffr = specs.get('buffer')
         for b in bffr.keys():
+
+            if 'param_keys' in bffr[b].keys():
+                for key in bffr[b]['param_keys']:
+                    bffr[b][key] = self.params[key]
+                bffr[b].pop('param_keys', None)
+
             self.buffer[b] = self.mapping.get('SoBuffer')(id=self.id,
-                                                          pose_frame=
-                                                          self.pose_frame,
                                                           **bffr[b])
 
         # create mechanisms
@@ -144,12 +147,14 @@ class SOComponents(object):
                     behaviours[b][1]['mechanism'] = self.mechanisms[
                         behaviours[b][1]['mechanism']]
 
-            if 'motion_topic' in behaviours[b][1].keys():
-                if behaviours[b][1]['motion_topic']:
-                    behaviours[b][1]['motion_topic'] = self.motion_topic
+            if 'param_keys' in behaviours[b][1].keys():
+                for key in behaviours[b][1]['param_keys']:
+                    behaviours[b][1][key] = self.params[key]
+                behaviours[b][1].pop('param_keys', None)
 
             self.behaviours[b] = self.mapping.get(behaviours[b][0])(
-                name=b+self.id+'behaviour', plannerPrefix=self.planner_prefix,
+                name=b+self.id+'behaviour',
+                plannerPrefix=self.planner_prefix,
                 **behaviours[b][1])
 
         # add preconditions
@@ -166,7 +171,8 @@ class SOComponents(object):
                                              goals[g][1]['conditions']]
 
             self.goals[g] = self.mapping.get(goals[g][0])(
-                name=g+self.id+'goal', plannerPrefix=self.planner_prefix,
+                name=g+self.id+'goal',
+                plannerPrefix=self.planner_prefix,
                 **goals[g][1])
 
     def create_condition(self, lst):
@@ -230,7 +236,7 @@ class SOComponents(object):
 
 def create_from_yaml(file_path, id, components_class=SOComponents,
                      planner_prefix='', so_goal=None, mapping=SO_MAPPING,
-                     motion_topic='', pose_frame='robot'):
+                     params=None):
     """
     create SO components from yaml specification
     either hand over yaml file with one specification only or specify
@@ -241,8 +247,6 @@ def create_from_yaml(file_path, id, components_class=SOComponents,
     :param planner_prefix: prefix of RHBP instance
     :param so_goal: key for specification in yaml file
     :param mapping: mapping from strings to classes
-    :param motion_topic: topic where twist has to be published to (agent)
-    :param pose_frame: message frame ID for position data of agents
     :return: components_class instance containing required RHBP components
     """
 
@@ -260,12 +264,11 @@ def create_from_yaml(file_path, id, components_class=SOComponents,
         if so_goal:
             return components_class(data[so_goal], id, mapping=mapping,
                                     planner_prefix=planner_prefix,
-                                    motion_topic=motion_topic,
-                                    pose_frame=pose_frame)
+                                    params=params)
         else:
             return components_class(data, id, planner_prefix=planner_prefix,
-                                    mapping=mapping, motion_topic=motion_topic,
-                                    pose_frame=pose_frame)
+                                    mapping=mapping,
+                                    params=params)
 
     else:
         rospy.logerr("SO components creation failed.")
