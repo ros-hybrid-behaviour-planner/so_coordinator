@@ -20,7 +20,8 @@ from rhbp_selforga.behaviours import MoveBehaviour, TurnBehaviour, \
     DecisionBehaviour, DecisionStateBehaviour, SetStateBehaviour
 from rhbp_selforga.conditions import ChangeFloatCondition, \
     ChangeStringCondition, BoolTCondition, BoolFCondition, VectorBoolCondition,\
-    GoalBoolCondition, MaxDistCondition, VectorDistCondition
+    GoalBoolCondition, MaxDistCondition, VectorDistCondition, \
+    GradientBoolCondition
 from rhbp_selforga.gradientsensor import GradientSensor, SENSOR
 
 from so_data.chemotaxis import ChemotaxisGe, ChemotaxisBalch, \
@@ -80,6 +81,7 @@ SO_MAPPING = {
     'VectorBoolCondition': VectorBoolCondition,
     'MaxDistCondition': MaxDistCondition,
     'GoalBoolCondition': GoalBoolCondition,
+    'GradientBoolCondition': GradientBoolCondition,
     'VectorDistCondition': VectorDistCondition,
     # Gradient Sensor
     'GradientSensor': GradientSensor,

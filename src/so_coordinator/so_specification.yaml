@@ -18,6 +18,7 @@ ChemotaxisGe: {
   goals: {g_chem: [GoalBase, {permanent: False, conditions: [[None, 'c_goal_reached']]}]}
 }
 
+
 # Collective Exploration
 # FlockingRey + Chemotaxis - Example XXX
 FlockingReyChemotaxisBalch: {
@@ -31,6 +32,7 @@ FlockingReyChemotaxisBalch: {
   preconditions: {b_flocking: [[None, 'c_flocking']] },
   goals: { }
 }
+
 
 # FormationControl
 # FlockingRey - Example 6 of flockingrey_single/multi_sim.launch
@@ -47,6 +49,7 @@ FlockingReyExploration: {
                   b_random: [[Negation, 'c_flocking']]},
   goals: { }
 }
+
 
 # CircleFormation
 # MorphogenesisBarycenter + ChemotaxisBalch - Example morphogenesissim.launch (rhbpSelforganizationTest)
@@ -72,6 +75,8 @@ MorphogenesisBarycenterChemotaxisBalch: {
   goals: { g_morph: [GoalBase, {permanent: False, conditions: [[None, 'c_goal_reached']]}]}
 }
 
+
+# Foraging
 # Ant Foraging: Explore and Exploit - Example foraging_multi_sim.launch / foraging_single_sim.launch
 Foraging: {
   buffer: { bf_pheromone: {view_distance: 1.5, min_diffusion: 0.3, aggregation_distance: 0.1, store_all: False, framestorage: ['Pheromone', 'robot'], ev_thread: True, ev_time: 1, param_keys: [pose_frame]},
@@ -135,12 +140,14 @@ Foraging: {
   goals: { goal: [GoalBase, {permanent: False, conditions: [[None, 'c_food']]}]}
 }
 
+
+# Individual Exploration
 # Exploration (each agent on its own) - elements of Example quorum_single/multi_sim.launch
 ExplorationChemotaxisGe: {
   buffer: {bf_ex: {view_distance: 2.0, param_keys: [pose_frame]} },
-  mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_ex', static: True, moving: True, minvel: 0.5}],
+  mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_ex', static: True, moving: True, minvel: 0.5, frames: ['target']}],
                m_ex: [Exploration, {buffer: 'bf_ex', minvel: 0.5}],
-               m_rep: [CollisionAvoidance, {buffer: 'bf_ex', moving: True, static: False, maxvel: 0.5}]},
+               m_rep: [CollisionAvoidance, {buffer: 'bf_ex', moving: True, static: False, maxvel: 0.5, frames:['robot']}]},
   activators: { a_bool: [BooleanActivator, {} ] },
   sensors: {s_grad: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}],
             s_grad_reached: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal, initial_value: True}] },
@@ -154,30 +161,35 @@ ExplorationChemotaxisGe: {
 }
 
 
-
-
-
-
-
-
+# Find Barycenter
 # MorphogenesisBarycenter - Example XXX
-FindBarycenter: {
+MorphogenesisBarycenter: {
   buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0, param_keys: [pose_frame]} },
-  mechanisms: { m_morph: [MorphogenesisBarycenter, {buffer: 'bf_morph', frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center}] },
+  mechanisms: { m_morph: [MorphogenesisBarycenter, {buffer: 'bf_morph', frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center}],
+                m_center: [ChemotaxisBalch, {buffer: 'bf_morph', moving: False, static: True, frames: ['Center']}]},
   activators: { a_bool: [BooleanActivator, {} ] },
   sensors: { s_morph: [GradientSensor, {mechanism: 'm_morph', sensor_type: value}],
              s_value: [KnowledgeFactSensor, {pattern: [value, '*']}],
              s_state: [GradientSensor, {mechanism: 'm_morph', sensor_type: state} ],
-             s_last_state: [KnowledgeFactSensor, {pattern: [state, '*']}] },
+             s_last_state: [KnowledgeFactSensor, {pattern: [state, '*']}],
+             s_center: [GradientSensor, {mechanism: 'm_center'}]},
   conditions: { c_morph: [ChangeFloatCondition, {sensors: ['s_morph', 's_value'], activator: 'a_bool'}, False],
-                c_state: [ChangeStringCondition, {sensors: ['s_state', 's_last_state'], activator: 'a_bool'}, False] },
-  behaviours: { },
-  preconditions: { },
-  goals: { }
+                c_state: [ChangeStringCondition, {sensors: ['s_state', 's_last_state'], activator: 'a_bool'}, False],
+                c_center: [GradientBoolCondition, {sensor: 's_center', activator: 'a_bool'}, False]},
+  behaviours: { b_morph: [DecisionBehaviour, {mechanism: 'm_morph', effects: [['c_morph', -1.0, bool], ['c_state', -1.0, bool], ['c_center', 1.0, bool]], value_key: value, state_key: state}]},
+  preconditions: { b_morph: [[Disjunction, [[None, 'c_morph'], [None, 'c_state']]]] },
+  goals: { g_morph: [GoalBase, {permanent: False, conditions: [[None, 'c_center']]}] }
 }
 
+
+
+
+
+
+
+# Maximum Value
 # GossipMax - Example XXX
-MaxValue: { }
+GossipMax: { }
 
 # Chemotaxis Collision Avoidance mechanism - Example XXX
 CollisionAvoidance: { }

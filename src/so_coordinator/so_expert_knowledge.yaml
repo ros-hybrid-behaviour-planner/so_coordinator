@@ -11,3 +11,5 @@ CircleFormation: [[MorphogenesisBarycenterChemotaxisBalch, 1.0]]
 Foraging: [[Foraging, 1.0]]
 
 IndividualExploration: [[ExplorationChemotaxisGe, 1.0]]
+
+FindBarycenter: [[MorphogenesisBarycenter, 1.0]]

@@ -23,7 +23,7 @@ class SoCoordinator(NetworkBehavior):
 
     def __init__(self, effects, so_goal, id='robot1',
                  expert_knowledge='so_expert_knowledge.yaml',
-                 pattern_knowledge='so_knowledge.yaml',
+                 pattern_knowledge='so_specification.yaml',
                  components_class=SOComponents, name='SoCoordinator',
                  mapping=SO_MAPPING, requires_execution_steps=True,
                  params=None, **kwargs):
@@ -73,6 +73,7 @@ class SoCoordinator(NetworkBehavior):
         if len(data) == 1:
             return data[0][0]
 
+        # several elements: take element with highest score
         else:
             max_vals = [item[1] for item in data]
             return data[max_vals.index(max(max_vals))][0]
