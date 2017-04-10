@@ -1,0 +1,13 @@
+# Mapping so_goal - List of Patterns & scores
+
+ReachGoal: [[ChemotaxisGe, 1.0]]
+
+CollectiveExploration: [[FlockingReyChemotaxisBalch, 1.0]]
+
+FormationControl: [[FlockingReyExploration, 1.0]]
+
+CircleFormation: [[MorphogenesisBarycenterChemotaxisBalch, 1.0]]
+
+Foraging: [[Foraging, 1.0]]
+
+IndividualExploration: [[ExplorationChemotaxisGe, 1.0]]

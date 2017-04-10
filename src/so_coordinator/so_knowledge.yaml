@@ -1,5 +1,8 @@
+# List of patterns/mechanism combinations including goals
+
+# Reach Goal
 # ChemotaxisGe - Example XXX
-ReachGoal: {
+ChemotaxisGe: {
   buffer: {bf_chem: {param_keys: [pose_frame]} },
   mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_chem', moving: False, static: True}]},
   activators: {a_bool: [BooleanActivator, {}],
@@ -15,8 +18,9 @@ ReachGoal: {
   goals: {g_chem: [GoalBase, {permanent: False, conditions: [[None, 'c_goal_reached']]}]}
 }
 
+# Collective Exploration
 # FlockingRey + Chemotaxis - Example XXX
-CollectiveExploration: {
+FlockingReyChemotaxisBalch: {
   buffer: {bf_flocking: {view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: {m_flocking: [FlockingRey, {buffer: 'bf_flocking', maxvel: 0.75}],
                m_chemotaxis: [ChemotaxisBalch, {buffer: 'bf_flocking', maxvel: 0.25, moving: False, static: True} ]},
@@ -28,8 +32,9 @@ CollectiveExploration: {
   goals: { }
 }
 
+# FormationControl
 # FlockingRey - Example 6 of flockingrey_single/multi_sim.launch
-FormationControl: {
+FlockingReyExploration: {
   buffer: {bf_flocking: {view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: {m_flocking: [FlockingRey, {buffer: 'bf_flocking', maxvel: 1.0}],
                m_random: [Exploration, {buffer: 'bf_flocking', minvel: 0.5}]},
@@ -43,8 +48,9 @@ FormationControl: {
   goals: { }
 }
 
+# CircleFormation
 # MorphogenesisBarycenter + ChemotaxisBalch - Example morphogenesissim.launch (rhbpSelforganizationTest)
-CircleFormation: {
+MorphogenesisBarycenterChemotaxisBalch: {
   buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: { m_morph: [MorphogenesisBarycenter, {buffer: 'bf_morph', frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center} ],
                 m_chem: [ChemotaxisBalch, {buffer: 'bf_morph', moving: False, static: True, minvel: 1.0, frames: ['Center']}] },
@@ -130,7 +136,7 @@ Foraging: {
 }
 
 # Exploration (each agent on its own) - elements of Example quorum_single/multi_sim.launch
-IndividualExploration: {
+ExplorationChemotaxisGe: {
   buffer: {bf_ex: {view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_ex', static: True, moving: True, minvel: 0.5}],
                m_ex: [Exploration, {buffer: 'bf_ex', minvel: 0.5}],

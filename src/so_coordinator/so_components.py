@@ -235,7 +235,7 @@ class SOComponents(object):
 
 
 def create_from_yaml(file_path, id, components_class=SOComponents,
-                     planner_prefix='', so_goal=None, mapping=SO_MAPPING,
+                     planner_prefix='', pattern_key=None, mapping=SO_MAPPING,
                      params=None):
     """
     create SO components from yaml specification
@@ -245,8 +245,10 @@ def create_from_yaml(file_path, id, components_class=SOComponents,
     :param id: id of the robot
     :param components_class: factory to create RHBP components
     :param planner_prefix: prefix of RHBP instance
-    :param so_goal: key for specification in yaml file
+    :param pattern_key: key for specification in yaml file
     :param mapping: mapping from strings to classes
+    :param params: list of agent specific parameters to be inserted by
+                   pattern creation
     :return: components_class instance containing required RHBP components
     """
 
@@ -261,8 +263,8 @@ def create_from_yaml(file_path, id, components_class=SOComponents,
 
     # create components_class instance
     if data:
-        if so_goal:
-            return components_class(data[so_goal], id, mapping=mapping,
+        if pattern_key:
+            return components_class(data[pattern_key], id, mapping=mapping,
                                     planner_prefix=planner_prefix,
                                     params=params)
         else:
