@@ -74,6 +74,11 @@ class SOComponents(object):
                 mechanisms[m][1]['buffer'] = self.buffer[mechanisms[m][1]
                                                          ['buffer']]
 
+            if 'param_keys' in mechanisms[m][1].keys():
+                for key in mechanisms[m][1]['param_keys']:
+                    mechanisms[m][1][key] = self.params[key]
+                mechanisms[m][1].pop('param_keys', None)
+
             self.mechanisms[m] = self.mapping.get(mechanisms[m][0])(
                 **mechanisms[m][1])
 
@@ -87,6 +92,11 @@ class SOComponents(object):
         sensors = specs.get('sensors')
         for s in sensors.keys():
             # adjust mechanism parameter
+            if 'param_keys' in sensors[s][1].keys():
+                for key in sensors[s][1]['param_keys']:
+                    sensors[s][1][key] = self.params[key]
+                sensors[s][1].pop('param_keys', None)
+
             if 'mechanism' in sensors[s][1].keys():
                 if isinstance(sensors[s][1], list):
                     sensors[s][1]['mechanism'] = [self.mechanisms[m] for m in

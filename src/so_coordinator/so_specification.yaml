@@ -182,14 +182,39 @@ MorphogenesisBarycenter: {
 }
 
 
-
-
-
-
-
 # Maximum Value
 # GossipMax - Example XXX
-GossipMax: { }
+GossipMax: {
+  buffer: {bf_gossip: {param_keys: [pose_frame], view_distance: 2.0} },
+  mechanisms: {m_gossip: [GossipMax, {buffer: 'bf_gossip', frame: gossip, key: max, param_keys: [value], diffusion: 3.0} ] },
+  sensors: {s_gossip: [GradientSensor, {mechanism: 'm_gossip', sensor_type: value, param_keys: [initial_value]}],
+            s_value: [KnowledgeFactSensor, {pattern: [value, '*']}] },
+  activators: {a_bool: [BooleanActivator, {}] },
+  conditions: {c_gossip: [ChangeFloatCondition, {sensors: ['s_gossip', 's_value'], activator: 'a_bool'}, False] },
+  behaviours: {b_gossip: [DecisionBehaviour, {mechanism: 'm_gossip', effects: [['c_gossip', -1.0, bool]], value_key: value}] },
+  preconditions: {b_gossip: [[None, 'c_gossip']]},
+  goals: {g_gossip: [GoalBase, {permanent: True, conditions: [[Negation, 'c_gossip']]}]}
+}
+
+
+# Uniform Distribution
+# RepulsionFernandez - Example repulsionsim.launch 5/6
+RepulsionFernandez: {
+  buffer: {bf_uniform: {param_keys: [pose_frame], view_distance: 2.0} },
+  mechanisms: {m_rep: [RepulsionFernandez, {buffer: 'bf_uniform'}]},
+  sensors: {s_bool: [GradientSensor, {mechanism: 'm_rep'}],
+            s_rep: [GradientSensor, {mechanism: 'm_rep'}] },
+  activators: {a_bool: [BooleanActivator, {}],
+               a_lin: [LinearActivator, {zeroActivationValue: 0, fullActivationValue: 1.5, minActivation: 0.0, maxActivation: 1.0}] },
+  conditions: {c_repulsion: [VectorBoolCondition, {sensor: 's_bool', activator: 'a_bool'}, False],
+               c_dist: [VectorDistCondition, {sensor: 's_rep', activator: 'a_lin'}, True] },
+  behaviours: {b_rep: [MoveBehaviour, {mechanism: 'm_rep', effects: [['c_dist', -1.0, float], ['c_repulsion', -1.0, bool]], param_keys: [motion_topic]}]},
+  preconditions: {b_rep: [[None, 'c_repulsion'], [None, 'c_dist']]},
+  goals: {g_uniform: [GoalBase, {permanent: True, conditions: [[Negation, 'c_repulsion']]}]}
+}
+
+
+
 
 # Chemotaxis Collision Avoidance mechanism - Example XXX
 CollisionAvoidance: { }
@@ -199,6 +224,4 @@ CollisionAvoidance: { }
 AvoidAgentCollisions: { }
 
 
-# RepulsionFernandez - Example XXX
-UniformDistribution: { }
 
