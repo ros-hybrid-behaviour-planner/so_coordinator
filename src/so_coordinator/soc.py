@@ -7,11 +7,10 @@ Module including self-organization coordinator
 """
 
 import os
-import yaml
-import rospy
 from behaviour_components.network_behavior import NetworkBehavior
 from so_coordinator.so_components import SOComponents, create_from_yaml
 from so_mapping import SO_MAPPING
+from decision_strategy import DecisionStrategy
 
 
 class SoCoordinator(NetworkBehavior):
@@ -23,9 +22,11 @@ class SoCoordinator(NetworkBehavior):
 
     def __init__(self, effects, so_goal, id='robot1',
                  expert_knowledge='so_expert_knowledge.yaml',
+                 path=os.path.dirname(__file__),
                  pattern_knowledge='so_specification.yaml',
                  components_class=SOComponents, name='SoCoordinator',
-                 mapping=SO_MAPPING, requires_execution_steps=True,
+                 mapping=SO_MAPPING, decision=DecisionStrategy,
+                 requires_execution_steps=True,
                  params=None, optional_params=None, **kwargs):
 
         """
@@ -40,6 +41,7 @@ class SoCoordinator(NetworkBehavior):
                                  components
         :param name: unique name of the object
         :param mapping: dictionary mapping strings to classes
+        :param decision: class containing decision strategy
         :param requires_execution_steps: whether the execution steps should be
                                          caused from the parent manager or not.
         :param kwargs: keyword arguments
@@ -52,52 +54,12 @@ class SoCoordinator(NetworkBehavior):
                                             **kwargs)
 
         # Coordination Mechanism Selection
-        config_key = self.coordination_mechanism_selection(so_goal,
-                                                            expert_knowledge)
+        self.selector = decision(so_goal, os.path.join(path, expert_knowledge))
+        config_key = self.selector.select()
 
         # create SO components based on expert knowledge
         self.components = create_from_yaml(
-            os.path.join(os.path.dirname(__file__), pattern_knowledge), id,
+            os.path.join(path, pattern_knowledge), id,
             planner_prefix=self.get_manager_prefix(), config_key=config_key,
             params=params, mapping=mapping, components_class=components_class,
             optional_params=optional_params)
-
-    def coordination_mechanism_selection(self, so_goal, expert_knowledge):
-        """
-        method to determine coordination mechanism for self-organization
-        :return: pattern key
-        """
-
-        data = self.load_expert_knowledge(expert_knowledge)[so_goal]
-
-        # only one element available
-        if len(data) == 1:
-            return data[0][0]
-
-        # several elements: take element with highest score
-        else:
-            max_vals = [item[1] for item in data]
-            return data[max_vals.index(max(max_vals))][0]
-
-    @staticmethod
-    def load_expert_knowledge(expert_knowledge):
-        """
-        method to lead yaml file with expert knowledge/
-        :return: data set related to expert knowledge
-        """
-
-        # load yaml file
-        data = None
-
-        with open(os.path.join(os.path.dirname(__file__), expert_knowledge),
-                  'r') as stream:
-            try:
-                data = yaml.load(stream)
-            except yaml.YAMLError as exc:
-                print(exc)
-
-        # determine key for component creation
-        if data:
-            return data
-        else:
-            rospy.logerr("Loading expert knowledge failed.")
