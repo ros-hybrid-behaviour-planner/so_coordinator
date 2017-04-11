@@ -52,13 +52,13 @@ class SoCoordinator(NetworkBehavior):
                                             **kwargs)
 
         # Coordination Mechanism Selection
-        pattern_key = self.coordination_mechanism_selection(so_goal,
+        config_key = self.coordination_mechanism_selection(so_goal,
                                                             expert_knowledge)
 
         # create SO components based on expert knowledge
         self.components = create_from_yaml(
             os.path.join(os.path.dirname(__file__), pattern_knowledge), id,
-            planner_prefix=self.get_manager_prefix(), pattern_key=pattern_key,
+            planner_prefix=self.get_manager_prefix(), config_key=config_key,
             params=params, mapping=mapping, components_class=components_class,
             optional_params=optional_params)
 
