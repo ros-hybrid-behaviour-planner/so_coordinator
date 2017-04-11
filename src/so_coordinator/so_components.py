@@ -18,22 +18,34 @@ class SOComponents(object):
     """
 
     def __init__(self, specs, id, planner_prefix='', mapping=SO_MAPPING,
-                 params=None):
+                 params=None, optional_params=None):
         """
         initialization of class
         :param specs: specification of RHBP components
         :param id: robot ID
         :param planner_prefix: prefix of used RHBP
         :param mapping: mapping from strings to classes
-        :param motion_topic: topic where twist has to be published to (agent)
-        :param pose_frame: message frame ID for position data of agents
+        :param params: dictionary of parameters which will be inserted when
+        specified as param_keys
+        :param optional_params: dictionary of parameters to be adjusted for
+        each component as required by overall setting (e.g. frame IDs)
         """
 
         # parameters of SOComponents instance
         self.id = id
-        self.params = params
+
+        if params is None:
+            self.params = {}
+        else:
+            self.params = params
+
         self.mapping = mapping
         self.planner_prefix = planner_prefix
+
+        if optional_params is None:
+            self.optional_params = {}
+        else:
+            self.optional_params = optional_params
 
         # storage for RHBP components
         self.buffer = {}
@@ -64,6 +76,10 @@ class SOComponents(object):
                     bffr[b][key] = self.params[key]
                 bffr[b].pop('param_keys', None)
 
+            # update params with individual keys
+            if b in self.optional_params.keys():
+                bffr[b].update(self.optional_params[b])
+
             self.buffer[b] = self.mapping.get('SoBuffer')(id=self.id,
                                                           **bffr[b])
 
@@ -79,12 +95,21 @@ class SOComponents(object):
                     mechanisms[m][1][key] = self.params[key]
                 mechanisms[m][1].pop('param_keys', None)
 
+            # update params with individual keys
+            if m in self.optional_params.keys():
+                mechanisms[m][1].update(self.optional_params[m])
+
             self.mechanisms[m] = self.mapping.get(mechanisms[m][0])(
                 **mechanisms[m][1])
 
         # create activators
         activators = specs.get('activators')
         for a in activators.keys():
+
+            # update params with individual keys
+            if a in self.optional_params.keys():
+                activators[a][1].update(self.optional_params[a])
+
             self.activators[a] = self.mapping.get(activators[a][0])(
                 **activators[a][1])
 
@@ -108,6 +133,10 @@ class SOComponents(object):
             if 'pattern' in sensors[s][1].keys():
                 sensors[s][1]['pattern'][0] += self.id
 
+            # update params with individual keys
+            if s in self.optional_params.keys():
+                sensors[s][1].update(self.optional_params[s])
+
             self.sensors[s] = self.mapping.get(sensors[s][0])(
                 name=s + self.id + 'sensor', **sensors[s][1])
 
@@ -125,6 +154,10 @@ class SOComponents(object):
             if 'activator' in conditions[c][1].keys():
                 conditions[c][1]['activator'] = self.activators[
                     conditions[c][1]['activator']]
+
+            # update params with individual keys
+            if c in self.optional_params.keys():
+                conditions[c][1].update(self.optional_params[c])
 
             self.conditions[c] = self.mapping.get(conditions[c][0])(
                 name=c + self.id + 'condition', **conditions[c][1])
@@ -162,6 +195,10 @@ class SOComponents(object):
                     behaviours[b][1][key] = self.params[key]
                 behaviours[b][1].pop('param_keys', None)
 
+            # update params with individual keys
+            if b in self.optional_params.keys():
+                behaviours[b][1].update(self.optional_params[b])
+
             self.behaviours[b] = self.mapping.get(behaviours[b][0])(
                 name=b+self.id+'behaviour',
                 plannerPrefix=self.planner_prefix,
@@ -179,6 +216,10 @@ class SOComponents(object):
             if 'conditions' in goals[g][1].keys():
                 goals[g][1]['conditions'] = [self.create_condition(c) for c in
                                              goals[g][1]['conditions']]
+
+            # update params with individual keys
+            if g in self.optional_params.keys():
+                goals[g][1].update(self.optional_params[g])
 
             self.goals[g] = self.mapping.get(goals[g][0])(
                 name=g+self.id+'goal',
@@ -246,7 +287,7 @@ class SOComponents(object):
 
 def create_from_yaml(file_path, id, components_class=SOComponents,
                      planner_prefix='', pattern_key=None, mapping=SO_MAPPING,
-                     params=None):
+                     params=None, optional_params=None):
     """
     create SO components from yaml specification
     either hand over yaml file with one specification only or specify
@@ -276,11 +317,12 @@ def create_from_yaml(file_path, id, components_class=SOComponents,
         if pattern_key:
             return components_class(data[pattern_key], id, mapping=mapping,
                                     planner_prefix=planner_prefix,
-                                    params=params)
+                                    params=params,
+                                    optional_params=optional_params)
         else:
             return components_class(data, id, planner_prefix=planner_prefix,
-                                    mapping=mapping,
-                                    params=params)
+                                    mapping=mapping, params=params,
+                                    optional_params=optional_params)
 
     else:
         rospy.logerr("SO components creation failed.")

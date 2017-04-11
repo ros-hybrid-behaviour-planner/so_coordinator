@@ -4,7 +4,7 @@
 # ChemotaxisGe - Example XXX
 ChemotaxisGe: {
   buffer: {bf_chem: {param_keys: [pose_frame]} },
-  mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_chem', moving: False, static: True}]},
+  mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_chem', moving: True, static: True}]},
   activators: {a_bool: [BooleanActivator, {}],
                a_lin: [LinearActivator, {zeroActivationValue: 2.0, fullActivationValue: 0.0, minActivation: 0.0, maxActivation: 1.0}]},
   sensors: {s_goal: [GradientSensor, {mechanism: 'm_chem'}],
@@ -147,7 +147,7 @@ ExplorationChemotaxisGe: {
   buffer: {bf_ex: {view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_ex', static: True, moving: True, minvel: 0.5, frames: ['target']}],
                m_ex: [Exploration, {buffer: 'bf_ex', minvel: 0.5}],
-               m_rep: [CollisionAvoidance, {buffer: 'bf_ex', moving: True, static: False, maxvel: 0.5, frames:['robot']}]},
+               m_rep: [CollisionAvoidance, {buffer: 'bf_ex', moving: True, static: False, maxvel: 0.5, frames: ['robot']}]},
   activators: { a_bool: [BooleanActivator, {} ] },
   sensors: {s_grad: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}],
             s_grad_reached: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal, initial_value: True}] },

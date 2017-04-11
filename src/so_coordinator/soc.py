@@ -26,7 +26,7 @@ class SoCoordinator(NetworkBehavior):
                  pattern_knowledge='so_specification.yaml',
                  components_class=SOComponents, name='SoCoordinator',
                  mapping=SO_MAPPING, requires_execution_steps=True,
-                 params=None, **kwargs):
+                 params=None, optional_params=None, **kwargs):
 
         """
         initialization
@@ -59,7 +59,8 @@ class SoCoordinator(NetworkBehavior):
         self.components = create_from_yaml(
             os.path.join(os.path.dirname(__file__), pattern_knowledge), id,
             planner_prefix=self.get_manager_prefix(), pattern_key=pattern_key,
-            params=params, mapping=mapping, components_class=components_class)
+            params=params, mapping=mapping, components_class=components_class,
+            optional_params=optional_params)
 
     def coordination_mechanism_selection(self, so_goal, expert_knowledge):
         """
