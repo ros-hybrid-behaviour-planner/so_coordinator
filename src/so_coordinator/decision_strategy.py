@@ -7,7 +7,7 @@ Module including class for decision making strategy
 """
 
 import yaml
-from expert_knowledge import Option
+from option import Option
 
 
 class DecisionStrategy(object):

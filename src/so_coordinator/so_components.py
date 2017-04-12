@@ -33,21 +33,22 @@ class SOComponents(object):
 
         # parameters of SOComponents instance
         self.id = id
+        self.mapping = mapping
+        self.planner_prefix = planner_prefix
 
         if params is None:
             self.params = {}
+            rospy.logwarn("No agent specific parameters specified in "
+                          "SoComponents.")
         else:
             self.params = params
-
-        self.mapping = mapping
-        self.planner_prefix = planner_prefix
 
         if optional_params is None:
             self.optional_params = {}
         else:
             self.optional_params = optional_params
 
-        # storage for RHBP components
+        # storage for components
         self.buffer = {}
         self.mechanisms = {}
         self.activators = {}
@@ -62,7 +63,7 @@ class SOComponents(object):
     def create_components(self, specs):
         """
         Method to dynamically create required components for self-organization
-        based on specification
+        based on given specification
         stores components in dictionaries defined in init
         :param specs: specification of RHBP components
         """
@@ -70,7 +71,6 @@ class SOComponents(object):
         # create buffer
         bffr = specs.get('buffer')
         for b in bffr.keys():
-
             if 'param_keys' in bffr[b].keys():
                 for key in bffr[b]['param_keys']:
                     bffr[b][key] = self.params[key]
@@ -105,7 +105,6 @@ class SOComponents(object):
         # create activators
         activators = specs.get('activators')
         for a in activators.keys():
-
             # update params with individual keys
             if a in self.optional_params.keys():
                 activators[a][1].update(self.optional_params[a])
@@ -263,7 +262,7 @@ class SOComponents(object):
         """
         method to create effect list as required to be handed over to
         behaviours
-        :return: list [condition, +/- 1, type]
+        :return: list [condition, indicator, type]
         """
 
         # RHBP effects only differentiate between bool and not bool
@@ -290,8 +289,8 @@ def create_from_yaml(file_path, id, components_class=SOComponents,
                      params=None, optional_params=None):
     """
     create SO components from yaml specification
-    either hand over yaml file with one specification only or specify
-    so_goal/key
+    either hand over yaml file with one specification only or specify config
+    key
     :param file_path: path to yaml file
     :param id: id of the robot
     :param components_class: factory to create RHBP components
@@ -300,6 +299,8 @@ def create_from_yaml(file_path, id, components_class=SOComponents,
     :param mapping: mapping from strings to classes
     :param params: list of agent specific parameters to be inserted by
                    pattern creation
+    :param optional_params: dictionary of parameters to be adjusted for
+                            each component as required by overall setting
     :return: components_class instance containing required RHBP components
     """
 

@@ -12,7 +12,7 @@ class Option(object):
 
     def __init__(self, option):
         """
-        initialization
+        initialization: store option parameters
         :param option: [config_key, score]
         """
         self._config_key = option[0]

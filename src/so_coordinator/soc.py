@@ -16,16 +16,16 @@ from decision_strategy import DecisionStrategy
 class SoCoordinator(NetworkBehavior):
     """
     Self-organization coordinator which allows to encapsulate self-organising
-    behaviour. This creates a meta level and eases modelling complex
-    problems
+    behaviour and eases modelling complex problems
     """
 
-    def __init__(self, effects, so_goal, id='robot1',
-                 expert_knowledge='so_expert_knowledge.yaml',
+    def __init__(self, effects, so_goal, id='robot1', name='SoCoordinator',
                  path=os.path.dirname(__file__),
+                 expert_knowledge='so_expert_knowledge.yaml',
                  pattern_knowledge='so_specification.yaml',
-                 components_class=SOComponents, name='SoCoordinator',
-                 mapping=SO_MAPPING, decision=DecisionStrategy,
+                 decision=DecisionStrategy,
+                 components_class=SOComponents,
+                 mapping=SO_MAPPING,
                  requires_execution_steps=True,
                  params=None, optional_params=None, **kwargs):
 
@@ -35,29 +35,36 @@ class SoCoordinator(NetworkBehavior):
         :param so_goal: self-organization goal used in coordination mechanism
                         selection
         :param id: id of the agent
-        :param expert_knowledge: yaml file containing mapping between so goal
-                                 and setup of RHBP components
+        :param name: unique name of the object
+        :param path: path to the yaml files
+        :param expert_knowledge: yaml file containing mapping goal - option
+        :param pattern_knowledge: yaml file containing option configurations
+        :param decision: class containing decision strategy
         :param components_class: class containing factory to create RHBP
                                  components
-        :param name: unique name of the object
         :param mapping: dictionary mapping strings to classes
-        :param decision: class containing decision strategy
         :param requires_execution_steps: whether the execution steps should be
                                          caused from the parent manager or not.
+        :param params: agent specific parameters for creation of RHBP
+                       components
+        :param optional_params: dictionary indicating component parameters to
+                                be adjusted; form: component_key:  {parameters}
         :param kwargs: keyword arguments
         """
 
-        # init Network Behaviour
+        # init parent class (NetworkBehaviour)
         super(SoCoordinator, self).__init__(effects=effects, name=name,
                                             requires_execution_steps=
                                             requires_execution_steps,
                                             **kwargs)
 
         # Coordination Mechanism Selection
+
+        # 1) Expert Knowledge + Decision Making Strategy
         self.selector = decision(so_goal, os.path.join(path, expert_knowledge))
         config_key = self.selector.select()
 
-        # create SO components based on expert knowledge
+        # 2) Creation of SO Components based on selected so configuration
         self.components = create_from_yaml(
             os.path.join(path, pattern_knowledge), id,
             planner_prefix=self.get_manager_prefix(), config_key=config_key,
