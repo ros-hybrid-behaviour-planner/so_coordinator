@@ -161,9 +161,6 @@ class SOComponents(object):
             self.conditions[c] = self.mapping.get(conditions[c][0])(
                 name=c + self.id + 'condition', **conditions[c][1])
 
-            if conditions[c][2]:
-                self.conditions[c].optional = True
-
         # create behaviours
         behaviours = specs.get('behaviours')
         for b in behaviours.keys():
