@@ -40,7 +40,7 @@ class SoComponentsTest(unittest.TestCase):
         """
         # buffer created with specified parameter
         self.assertEqual(len(components.buffer), 1)
-        self.assertEqual(components.buffer['bf_chem'].view_distance, 2.0)
+        self.assertEqual(components.buffer['bf_chem'].view_distance, 1.5)
         self.assertTrue(isinstance(components.buffer['bf_chem'], SoBuffer),
                         "Not the correct object")
 
@@ -53,6 +53,7 @@ class SoComponentsTest(unittest.TestCase):
                          components.buffer['bf_chem'])
         self.assertTrue(isinstance(components.mechanisms['m_chem'],
                                    ChemotaxisGe), "Not the correct object")
+        self.assertEqual(components.mechanisms['m_chem'].frames, ['Center'])
 
     def test_activators(self):
         """
@@ -61,7 +62,7 @@ class SoComponentsTest(unittest.TestCase):
         self.assertEqual(len(components.activators), 2)
         self.assertTrue('a_bool' in components.activators.keys())
         self.assertEqual(components.activators['a_lin'].zeroActivationValue,
-                         2.0)
+                         1.0)
         self.assertTrue(isinstance(components.activators['a_bool'],
                                    BooleanActivator), "Not the correct object")
         self.assertTrue(isinstance(components.activators['a_lin'],
@@ -73,7 +74,8 @@ class SoComponentsTest(unittest.TestCase):
         """
         self.assertEqual(len(components.sensors), 3)
         self.assertEqual(components.sensors['s_goal'].mechanism,
-                         components.mechanisms['m_chem'])
+                        [components.mechanisms['m_chem'],
+                         components.mechanisms['m_chem']])
         self.assertTrue(isinstance(components.sensors['s_goal'],
                                    GradientSensor), "Not the correct object")
 
@@ -84,16 +86,19 @@ class SoComponentsTest(unittest.TestCase):
         self.assertEqual(len(components.conditions), 4)
         self.assertEqual(components.conditions['c_goal'].sensor,
                          components.sensors['s_goal'])
+        self.assertTrue(components.conditions['c_dist'].optional)
         self.assertEqual(components.conditions['c_goal'].activator,
                          components.activators['a_bool'])
         self.assertEqual(components.conditions['c_goal_reached'].sensor,
                          components.sensors['s_goal_reached'])
         self.assertEqual(components.conditions['c_goal_reached'].activator,
                          components.activators['a_bool'])
+        self.assertFalse(components.conditions['c_goal_reached'].optional)
         self.assertEqual(components.conditions['c_dist'].sensor,
                          components.sensors['s_dist'])
         self.assertEqual(components.conditions['c_dist'].activator,
                          components.activators['a_lin'])
+        self.assertTrue(components.conditions['c_dist'].optional)
 
         self.assertTrue(isinstance(components.conditions['c_dist'],
                                    VectorDistCondition),
@@ -140,6 +145,7 @@ class SoComponentsTest(unittest.TestCase):
                          components.conditions['c_goal_reached'])
         self.assertTrue(isinstance(components.goals['g_chem'], GoalBase),
                         "Not the correct object")
+        self.assertTrue(components.goals['g_chem']._permanent)
 
     def test_effect(self):
         """
@@ -186,9 +192,9 @@ if __name__ == '__main__':
     rospy.init_node('test')
     m = Manager()
     specs = {'buffer': {'bf_chem': {'view_distance': 2.0}},
-                  'mechanisms': {'m_chem': ['ChemotaxisGe', {
-                      'buffer': 'bf_chem', 'moving': False, 'static': True}]},
-                  'activators': {'a_bool': ['BooleanActivator', {}],
+             'mechanisms': {'m_chem': ['ChemotaxisGe', {
+                 'buffer': 'bf_chem', 'moving': False, 'static': True}]},
+             'activators': {'a_bool': ['BooleanActivator', {}],
                                  'a_lin': ['LinearActivator',
                                            {'zeroActivationValue': 2.0,
                                             'fullActivationValue': 0.0,
@@ -204,21 +210,20 @@ if __name__ == '__main__':
                                           'sensor_type': 'goal'}]},
                   'conditions': {'c_goal': ['VectorBoolCondition',
                                             {'sensor': 's_goal',
-                                             'activator': 'a_bool'}, False],
+                                             'activator': 'a_bool'}],
                                  'c_goal_reached': ['GoalBoolCondition',
-                                                    {
-                                                        'sensor': 's_goal_reached',
-                                                        'activator': 'a_bool'},
-                                                    False],
+                                                    {'sensor': 's_goal_reached',
+                                                        'activator': 'a_bool'}],
                                  'c_dist': ['VectorDistCondition',
                                             {'sensor': 's_dist',
-                                             'activator': 'a_lin'}, True],
+                                             'activator': 'a_lin',
+                                             'optional': True}],
                                  'c_morph': ['ChangeFloatCondition',
                                              {'sensors': ['s_goal', 's_dist'],
-                                              'activator': 'a_bool'}, False]},
+                                              'activator': 'a_bool'}]},
                   'behaviours': {'b_chem': ['MoveBehaviour',
                                             {'mechanism': 'm_chem',
-                                             'motion_topic': True,
+                                             'param_keys': ['motion_topic'],
                                              'effects': [['c_dist', -1.0,
                                                           'float'],
                                                          ['c_goal_reached',
@@ -238,6 +243,15 @@ if __name__ == '__main__':
                                                           'c_goal_reached']]}]}
                   }
 
-    components = SOComponents(specs, 'r1', motion_topic='/cmd_vel')
+    components = SOComponents(specs, 'r1', params={'motion_topic': '/cmd_vel'},
+                              optional_params={
+                                  'a_lin': {'zeroActivationValue': 1.0},
+                                  'bf_chem': {'view_distance': 1.5},
+                                  'm_chem': {'frames': ['Center']},
+                                  's_goal': {'mechanism': ['m_chem', 'm_chem']},
+                                  'c_goal': {'optional': True},
+                                  'b_chem': {'motion_topic': '/cmd_vel2'},
+                                  'g_chem': {'permanent': True}
+                              })
 
     unittest.main()

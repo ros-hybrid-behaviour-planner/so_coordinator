@@ -71,14 +71,14 @@ class SOComponents(object):
         # create buffer
         bffr = specs.get('buffer')
         for b in bffr.keys():
+            # update params with individual keys
+            if b in self.optional_params.keys():
+                bffr[b].update(self.optional_params[b])
+
             if 'param_keys' in bffr[b].keys():
                 for key in bffr[b]['param_keys']:
                     bffr[b][key] = self.params[key]
                 bffr[b].pop('param_keys', None)
-
-            # update params with individual keys
-            if b in self.optional_params.keys():
-                bffr[b].update(self.optional_params[b])
 
             self.buffer[b] = self.mapping.get('SoBuffer')(id=self.id,
                                                           **bffr[b])
@@ -86,6 +86,10 @@ class SOComponents(object):
         # create mechanisms
         mechanisms = specs.get('mechanisms')
         for m in mechanisms.keys():
+            # update params with individual keys
+            if m in self.optional_params.keys():
+                mechanisms[m][1].update(self.optional_params[m])
+
             if 'buffer' in mechanisms[m][1].keys():
                 mechanisms[m][1]['buffer'] = self.buffer[mechanisms[m][1]
                                                          ['buffer']]
@@ -94,10 +98,6 @@ class SOComponents(object):
                 for key in mechanisms[m][1]['param_keys']:
                     mechanisms[m][1][key] = self.params[key]
                 mechanisms[m][1].pop('param_keys', None)
-
-            # update params with individual keys
-            if m in self.optional_params.keys():
-                mechanisms[m][1].update(self.optional_params[m])
 
             self.mechanisms[m] = self.mapping.get(mechanisms[m][0])(
                 **mechanisms[m][1])
@@ -115,6 +115,10 @@ class SOComponents(object):
         # create sensors
         sensors = specs.get('sensors')
         for s in sensors.keys():
+            # update params with individual keys
+            if s in self.optional_params.keys():
+                sensors[s][1].update(self.optional_params[s])
+
             # adjust mechanism parameter
             if 'param_keys' in sensors[s][1].keys():
                 for key in sensors[s][1]['param_keys']:
@@ -122,7 +126,7 @@ class SOComponents(object):
                 sensors[s][1].pop('param_keys', None)
 
             if 'mechanism' in sensors[s][1].keys():
-                if isinstance(sensors[s][1], list):
+                if isinstance(sensors[s][1]['mechanism'], list):
                     sensors[s][1]['mechanism'] = [self.mechanisms[m] for m in
                                                   sensors[s][1]['mechanism']]
                 else:
@@ -132,16 +136,16 @@ class SOComponents(object):
             if 'pattern' in sensors[s][1].keys():
                 sensors[s][1]['pattern'][0] += self.id
 
-            # update params with individual keys
-            if s in self.optional_params.keys():
-                sensors[s][1].update(self.optional_params[s])
-
             self.sensors[s] = self.mapping.get(sensors[s][0])(
                 name=s + self.id + 'sensor', **sensors[s][1])
 
         # create conditions
         conditions = specs.get('conditions')
         for c in conditions.keys():
+            # update params with individual keys
+            if c in self.optional_params.keys():
+                conditions[c][1].update(self.optional_params[c])
+
             if 'sensor' in conditions[c][1].keys():
                 conditions[c][1]['sensor'] = self.sensors[conditions[c][1]
                                                           ['sensor']]
@@ -154,16 +158,16 @@ class SOComponents(object):
                 conditions[c][1]['activator'] = self.activators[
                     conditions[c][1]['activator']]
 
-            # update params with individual keys
-            if c in self.optional_params.keys():
-                conditions[c][1].update(self.optional_params[c])
-
             self.conditions[c] = self.mapping.get(conditions[c][0])(
                 name=c + self.id + 'condition', **conditions[c][1])
 
         # create behaviours
         behaviours = specs.get('behaviours')
         for b in behaviours.keys():
+            # update params with individual keys
+            if b in self.optional_params.keys():
+                behaviours[b][1].update(self.optional_params[b])
+
             # rework conditions
             if 'effects' in behaviours[b][1].keys():
                     sub = []
@@ -191,10 +195,6 @@ class SOComponents(object):
                     behaviours[b][1][key] = self.params[key]
                 behaviours[b][1].pop('param_keys', None)
 
-            # update params with individual keys
-            if b in self.optional_params.keys():
-                behaviours[b][1].update(self.optional_params[b])
-
             self.behaviours[b] = self.mapping.get(behaviours[b][0])(
                 name=b+self.id+'behaviour',
                 plannerPrefix=self.planner_prefix,
@@ -209,13 +209,13 @@ class SOComponents(object):
         # create goals
         goals = specs.get('goals')
         for g in goals.keys():
-            if 'conditions' in goals[g][1].keys():
-                goals[g][1]['conditions'] = [self.create_condition(c) for c in
-                                             goals[g][1]['conditions']]
-
             # update params with individual keys
             if g in self.optional_params.keys():
                 goals[g][1].update(self.optional_params[g])
+
+            if 'conditions' in goals[g][1].keys():
+                goals[g][1]['conditions'] = [self.create_condition(c) for c in
+                                             goals[g][1]['conditions']]
 
             self.goals[g] = self.mapping.get(goals[g][0])(
                 name=g+self.id+'goal',
