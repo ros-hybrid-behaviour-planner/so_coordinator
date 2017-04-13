@@ -7,10 +7,12 @@ Module including self-organization coordinator
 """
 
 import os
+import rospy
 from behaviour_components.network_behavior import NetworkBehavior
 from so_coordinator.so_components import SOComponents, create_from_yaml
 from so_mapping import SO_MAPPING
 from decision_strategy import DecisionStrategy
+from rhbp_core.srv import RemoveBehaviour, RemoveGoal
 
 
 class SoCoordinator(NetworkBehavior):
@@ -52,6 +54,14 @@ class SoCoordinator(NetworkBehavior):
         :param kwargs: keyword arguments
         """
 
+        self.path = path
+        self.pattern_knowledge = pattern_knowledge
+        self.params = params
+        self.mapping = mapping
+        self.components_class = components_class
+        self.optional_params = optional_params
+        self.id = id
+
         # init parent class (NetworkBehaviour)
         super(SoCoordinator, self).__init__(effects=effects, name=name,
                                             requires_execution_steps=
@@ -70,3 +80,44 @@ class SoCoordinator(NetworkBehavior):
             planner_prefix=self.get_manager_prefix(), config_key=config_key,
             params=params, mapping=mapping, components_class=components_class,
             optional_params=optional_params)
+
+    def remove_components(self):
+        """
+        method to remove components
+        :return:
+        """
+        rospy.wait_for_service(self.get_manager_prefix() +
+                               '/RemoveBehaviour', 5)
+        remove = rospy.ServiceProxy(self.get_manager_prefix() +
+                                    '/RemoveBehaviour', RemoveBehaviour)
+
+        for b in self.components.behaviours.values():
+            remove(b._name)
+
+        # delete Goal
+        rospy.wait_for_service(self.get_manager_prefix() +
+                               '/RemoveGoal', 5)
+        remove_goal = rospy.ServiceProxy(self.get_manager_prefix() +
+                                         '/RemoveGoal', RemoveGoal)
+
+        for g in self.components.goals.values():
+            remove_goal(g.name)
+
+        # delete in SoC
+        self.components.delete_components()
+
+    def replace_components(self, config_key):
+        """
+        method to remove existing components and create new ones
+        :return:
+        """
+        # remove current components
+        self.remove_components()
+
+        # create new components
+        self.components = create_from_yaml(
+            os.path.join(self.path, self.pattern_knowledge), self.id,
+            planner_prefix=self.get_manager_prefix(), config_key=config_key,
+            params=self.params, mapping=self.mapping,
+            components_class=self.components_class,
+            optional_params=self.optional_params)
