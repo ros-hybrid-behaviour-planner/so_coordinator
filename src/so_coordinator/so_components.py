@@ -18,7 +18,7 @@ class SOComponents(object):
     """
 
     def __init__(self, specs, id, planner_prefix='', mapping=SO_MAPPING,
-                 params=None, optional_params=None):
+                 params=None, optional_params=None, name=''):
         """
         initialization of class
         :param specs: specification of RHBP components
@@ -29,10 +29,12 @@ class SOComponents(object):
         specified as param_keys
         :param optional_params: dictionary of parameters to be adjusted for
         each component as required by overall setting (e.g. frame IDs)
+        :param name: unique name of SOComponents instance
         """
 
         # parameters of SOComponents instance
         self.id = id
+        self.name = name
         self.mapping = mapping
         self.planner_prefix = planner_prefix
 
@@ -77,7 +79,11 @@ class SOComponents(object):
 
             if 'param_keys' in bffr[b].keys():
                 for key in bffr[b]['param_keys']:
-                    bffr[b][key] = self.params[key]
+                    if not key in self.params.keys():
+                        rospy.logwarn("Parameter key " + key +
+                                      " not specified in params!")
+                    else:
+                        bffr[b][key] = self.params[key]
                 bffr[b].pop('param_keys', None)
 
             self.buffer[b] = self.mapping.get('SoBuffer')(id=self.id,
@@ -137,7 +143,7 @@ class SOComponents(object):
                 sensors[s][1]['pattern'][0] += self.id
 
             self.sensors[s] = self.mapping.get(sensors[s][0])(
-                name=s + self.id + 'sensor', **sensors[s][1])
+                name=s + self.name + self.id + 'sensor', **sensors[s][1])
 
         # create conditions
         conditions = specs.get('conditions')
@@ -159,7 +165,7 @@ class SOComponents(object):
                     conditions[c][1]['activator']]
 
             self.conditions[c] = self.mapping.get(conditions[c][0])(
-                name=c + self.id + 'condition', **conditions[c][1])
+                name=c + self.name + self.id + 'condition', **conditions[c][1])
 
         # create behaviours
         behaviours = specs.get('behaviours')
@@ -191,12 +197,17 @@ class SOComponents(object):
                         behaviours[b][1]['mechanism']]
 
             if 'param_keys' in behaviours[b][1].keys():
+
                 for key in behaviours[b][1]['param_keys']:
-                    behaviours[b][1][key] = self.params[key]
+                    if not key in self.params.keys():
+                        rospy.logerr("Parameter key " + key +
+                                     " not specified in params!")
+                    else:
+                        behaviours[b][1][key] = self.params[key]
                 behaviours[b][1].pop('param_keys', None)
 
             self.behaviours[b] = self.mapping.get(behaviours[b][0])(
-                name=b+self.id+'behaviour',
+                name=b + self.name + self.id + 'behaviour',
                 plannerPrefix=self.planner_prefix,
                 **behaviours[b][1])
 
@@ -218,7 +229,7 @@ class SOComponents(object):
                                              goals[g][1]['conditions']]
 
             self.goals[g] = self.mapping.get(goals[g][0])(
-                name=g+self.id+'goal',
+                name=g + self.name + self.id + 'goal',
                 plannerPrefix=self.planner_prefix,
                 **goals[g][1])
 
@@ -283,7 +294,7 @@ class SOComponents(object):
 
 def create_from_yaml(file_path, id, components_class=SOComponents,
                      planner_prefix='', config_key=None, mapping=SO_MAPPING,
-                     params=None, optional_params=None):
+                     params=None, optional_params=None, name=''):
     """
     create SO components from yaml specification
     either hand over yaml file with one specification only or specify config
@@ -316,11 +327,11 @@ def create_from_yaml(file_path, id, components_class=SOComponents,
             return components_class(data[config_key], id, mapping=mapping,
                                     planner_prefix=planner_prefix,
                                     params=params,
-                                    optional_params=optional_params)
+                                    optional_params=optional_params, name=name)
         else:
             return components_class(data, id, planner_prefix=planner_prefix,
                                     mapping=mapping, params=params,
-                                    optional_params=optional_params)
+                                    optional_params=optional_params, name=name)
 
     else:
         rospy.logerr("SO components creation failed.")

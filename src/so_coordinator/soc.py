@@ -101,7 +101,7 @@ class SoCoordinator(NetworkBehavior):
                                          '/RemoveGoal', RemoveGoal)
 
         for g in self.components.goals.values():
-            remove_goal(g.name)
+            remove_goal(g._name)
 
         # delete in SoC
         self.components.delete_components()

@@ -1,7 +1,7 @@
 # List of patterns/mechanism combinations including goals
 
-# Reach Goal
-# ChemotaxisGe
+# ChemotaxisGe: Reach Goal
+# required params: pose_frame, motion_topic
 ChemotaxisGe: {
   buffer: {bf_chem: {param_keys: [pose_frame]} },
   mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_chem', moving: True, static: True}]},
@@ -19,8 +19,8 @@ ChemotaxisGe: {
 }
 
 
-# Collective Exploration
-# FlockingRey + Chemotaxis
+# FlockingRey + Chemotaxis: Collective Exploration
+# required params: pose_frame, motion_topic
 FlockingReyChemotaxisBalch: {
   buffer: {bf_flocking: {view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: {m_flocking: [FlockingRey, {buffer: 'bf_flocking', maxvel: 0.75}],
@@ -34,8 +34,8 @@ FlockingReyChemotaxisBalch: {
 }
 
 
-# FormationControl
-# FlockingRey - Example 6 of flockingrey_single/multi_sim.launch
+# FlockingRey: FormationControl (Example 6 of flockingrey_single/multi_sim.launch)
+# required params: pose_frame, motion_topic
 FlockingReyExploration: {
   buffer: {bf_flocking: {view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: {m_flocking: [FlockingRey, {buffer: 'bf_flocking', maxvel: 1.0}],
@@ -51,8 +51,8 @@ FlockingReyExploration: {
 }
 
 
-# CircleFormation
-# MorphogenesisBarycenter + ChemotaxisBalch - Example morphogenesissim.launch (rhbpSelforganizationTest)
+# MorphogenesisBarycenter + ChemotaxisBalch: CircleFormation (Example morphogenesissim.launch (rhbpSelforganizationTest))
+# required params: pose_frame, motion_topic
 MorphogenesisBarycenterChemotaxisBalch: {
   buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: { m_morph: [MorphogenesisBarycenter, {buffer: 'bf_morph', frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center} ],
@@ -76,8 +76,8 @@ MorphogenesisBarycenterChemotaxisBalch: {
 }
 
 
-# Foraging
-# Ant Foraging: Explore and Exploit - Example foraging_multi_sim.launch / foraging_single_sim.launch
+# Foraging: Explore and Exploit - Example foraging_multi_sim.launch / foraging_single_sim.launch
+# required params: pose_frame, motion_topic
 Foraging: {
   buffer: { bf_pheromone: {view_distance: 1.5, min_diffusion: 0.3, aggregation_distance: 0.1, store_all: False, framestorage: ['Pheromone', 'robot'], ev_thread: True, ev_time: 1, param_keys: [pose_frame]},
             bf_gradient: {view_distance: 1.5, aggregation_distance: 0.1, store_all: False, ev_thread: True, ev_time: 1, framestorage: ['Nest', 'Food', 'robot'], param_keys: [pose_frame]} },
@@ -141,8 +141,8 @@ Foraging: {
 }
 
 
-# Individual Exploration
-# Exploration (each agent on its own) - elements of Example quorum_single/multi_sim.launch
+# Exploration: Individual Exploration
+# required params: pose_frame, motion_topic
 ExplorationChemotaxisGe: {
   buffer: {bf_ex: {view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_ex', static: True, moving: True, minvel: 0.5, frames: ['target']}],
@@ -161,8 +161,8 @@ ExplorationChemotaxisGe: {
 }
 
 
-# Find Barycenter
-# MorphogenesisBarycenter - Example XXX
+# MorphogenesisBarycenter: Find Barycenter
+# required params: pose_frame
 MorphogenesisBarycenter: {
   buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0, param_keys: [pose_frame]} },
   mechanisms: { m_morph: [MorphogenesisBarycenter, {buffer: 'bf_morph', frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center}],
@@ -182,8 +182,8 @@ MorphogenesisBarycenter: {
 }
 
 
-# Maximum Value
-# GossipMax
+# GossipMax: Maximum Value
+# required params: pose_frame, value, initial_value
 GossipMax: {
   buffer: {bf_gossip: {param_keys: [pose_frame], view_distance: 2.0} },
   mechanisms: {m_gossip: [GossipMax, {buffer: 'bf_gossip', frame: gossip, key: max, param_keys: [value], diffusion: 3.0} ] },
@@ -197,8 +197,8 @@ GossipMax: {
 }
 
 
-# Uniform Distribution
-# RepulsionFernandez - Example repulsionsim.launch 5/6
+# RepulsionFernandez: Uniform Distribution (Example repulsionsim.launch 5/6)
+# required params: pose_frame, motion_topic
 RepulsionFernandez: {
   buffer: {bf_uniform: {param_keys: [pose_frame], view_distance: 2.0} },
   mechanisms: {m_rep: [RepulsionFernandez, {buffer: 'bf_uniform'}]},
@@ -214,8 +214,8 @@ RepulsionFernandez: {
 }
 
 
-# Repulsion / Agent Collision Avoidance
-# RepulsionFernandez - Example repulsionsim.launch 1
+# RepulsionGradient: Agent Collision Avoidance (Example repulsionsim.launch 1)
+# required params: pose_frame, motion_topic
 RepulsionGradient: {
   buffer: {bf_uniform: {param_keys: [pose_frame], view_distance: 1.5} },
   mechanisms: {m_rep: [RepulsionGradient, {buffer: 'bf_uniform'}]},
@@ -231,11 +231,11 @@ RepulsionGradient: {
 }
 
 
-
-# Chemotaxis Collision Avoidance mechanism
+# CollisionAvoidance: Chemotaxis Collision Avoidance mechanism
+# required params: pose_frame, motion_topic
 CollisionAvoidance: {
   buffer: {bf_coll: {view_distance: 1.5, param_keys: [pose_frame]} },
-  mechanisms: {m_coll: [CollisionAvoidance, {buffer: 'bf_ex', moving: True, static: True, maxvel: 1.0}]},
+  mechanisms: {m_coll: [CollisionAvoidance, {buffer: 'bf_coll', moving: True, static: True, maxvel: 1.0}]},
   activators: { a_bool: [BooleanActivator, {} ] },
   sensors: {s_coll: [GradientSensor, {mechanism: 'm_coll'}]},
   conditions: {c_coll: [VectorBoolCondition, {sensor: 's_coll', activator: 'a_bool'}]},
