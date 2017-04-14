@@ -243,3 +243,31 @@ CollisionAvoidance: {
   preconditions: {b_coll: [[None, 'c_coll']]},
   goals: {g_coll: [GoalBase, {permanent: True, conditions: [[Negation, 'c_coll']]}]}
 }
+
+
+# FollowAll: FollowPotentialField
+# required params: pose_frame, motion topic
+FollowAll: {
+  buffer: {bf_follow: {param_keys: [pose_frame]} },
+  mechanisms: {m_follow: [FollowAll, {buffer: 'bf_follow', moving: True, static: True, maxvel: 1.0, minvel: 0.5}]},
+  activators: {a_bool: [BooleanActivator, {}]},
+  sensors: {s_grad: [GradientSensor, {mechanism: 'm_follow'}]},
+  conditions: {c_grad: [VectorBoolCondition, {sensor: 's_grad', activator: 'a_bool'}]},
+  behaviours: {b_follow: [MoveBehaviour, {mechanism: 'm_follow', param_keys: [motion_topic], effects: [['c_grad', -1.0, float]]}]},
+  preconditions: {b_follow: [[None, 'c_grad']]},
+  goals: {}
+}
+
+# FollowMaxReach: FollowMaxPotential
+# required params: pose_frame, motion topic
+FollowMaxReach: {
+  buffer: {bf_follow: {param_keys: [pose_frame]} },
+  mechanisms: {m_follow: [FollowMaxReach, {buffer: 'bf_follow', moving: False, static: True, maxvel: 1.0, minvel: 0.5}],
+               m_coll: [CollisionAvoidance, {buffer: 'bf_follow', moving: True, static: True, maxvel: 1.0}]},
+  activators: {a_bool: [BooleanActivator, {}]},
+  sensors: {s_grad: [GradientSensor, {mechanism: 'm_follow'}]},
+  conditions: {c_grad: [VectorBoolCondition, {sensor: 's_grad', activator: 'a_bool'}]},
+  behaviours: {b_follow: [MoveBehaviour, {mechanism: ['m_follow', 'm_coll'], param_keys: [motion_topic], effects: [['c_grad', -1.0, float]]}]},
+  preconditions: {b_follow: [[None, 'c_grad']]},
+  goals: {}
+}

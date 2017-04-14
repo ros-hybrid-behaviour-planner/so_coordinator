@@ -24,3 +24,7 @@ CollisionAvoidance: [[CollisionAvoidance, 1.0, {}]]
 
 AgentCollisionAvoidance: [[RepulsionGradient, 1.0, {}],
                           [RepulsionFernandez, 1.0, {bf_rep: {view_distance: 1.5} } ]]
+
+FollowPotentialField: [[FollowAll, 1.0, {}]]
+
+FollowMaxPotential: [[FollowMaxReach, 1.0, {}]]
