@@ -200,8 +200,8 @@ GossipMax: {
 # RepulsionFernandez: Uniform Distribution (Example repulsionsim.launch 5/6)
 # required params: pose_frame, motion_topic
 RepulsionFernandez: {
-  buffer: {bf_uniform: {param_keys: [pose_frame], view_distance: 2.0} },
-  mechanisms: {m_rep: [RepulsionFernandez, {buffer: 'bf_uniform'}]},
+  buffer: {bf_rep: {param_keys: [pose_frame], view_distance: 2.0} },
+  mechanisms: {m_rep: [RepulsionFernandez, {buffer: 'bf_rep'}]},
   sensors: {s_bool: [GradientSensor, {mechanism: 'm_rep'}],
             s_rep: [GradientSensor, {mechanism: 'm_rep'}] },
   activators: {a_bool: [BooleanActivator, {}],

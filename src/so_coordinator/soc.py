@@ -76,7 +76,8 @@ class SoCoordinator(NetworkBehavior):
         # 1) Expert Knowledge + Decision Making Strategy
         self.selector = decision(so_goal, os.path.join(path, expert_knowledge))
         selection = self.selector.select()
-        # combine optional params and parameters included in option
+        # combine optional params and parameters included in expert knowledge
+        # (optional params dominate params included in expert knowledge)
         selection[1].update(self.optional_params)
 
         # 2) Creation of SO Components based on selected so configuration

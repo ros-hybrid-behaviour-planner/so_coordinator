@@ -27,7 +27,7 @@ class DecisionStrategy(object):
         """
         method selecting the coordination mechanism
         :return: configuration key for self-organization components creation,
-                 parameters of selected options
+                 parameter dict of selected options
         """
 
         # only one element available

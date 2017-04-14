@@ -69,6 +69,7 @@ When an object of SoCoordinator is created, the init method of NetworkBehaviour 
 Afterwards, the Coordination Mechanism Selection takes place. 
 First the decision making strategy implementation decides based on the provided expert knowledge which configuration to use.
 It returns a configuration key which is handed over to the components class. 
+Furthermore, a dictionary with parameters is returned which will be updated with the optional parameters and handed over to SOComponents using keyword argument `optional_params`. 
 The components class creates and stores the required components, which are specified in the pattern knowledge yaml. 
 The created components are associated with the RHBP instance of the SoCoordinator. 
 
@@ -88,15 +89,16 @@ They can be exchanged by custom yaml files which have the presented structure.
 ### so_expert_knowledge(.yaml)
 
 The so_expert_knowledge(.yaml) file contains a mapping between self-organization goal and a list of options. 
-Each option consists of a configuration key and a score in the following form: `[config_key, score]`.
+Each option consists of a configuration key, a score and a parameter dictionary in the following form: `[config_key, score, params]`.
 The score is a float number while the config_key has to match one of the keys in so_specifications.
 The self-organization goal has to be a string. 
+The parameter dictionary maps component key to a dictionary of keyword arguments. 
 
 Example:
 ```yamlex
-CollisionAvoidance: [[CollisionAvoidance, 1.0]]
-AgentCollisionAvoidance: [[RepulsionGradient, 1.0], 
-                          [RepulsionFernandez, 1.0]]
+CollisionAvoidance: [[CollisionAvoidance, 1.0, {}]]
+AgentCollisionAvoidance: [[RepulsionGradient, 1.0, {}], 
+                          [RepulsionFernandez, 1.0, {bf_rep: {view_distance: 1.5} } ]]
 ```
 Each self-organization goal can have one or more options associated to it. 
 
@@ -203,6 +205,7 @@ Furthermore, it is recommended to put component keys used in the parameter list 
 The following example allows to create a chemotaxis scenario to reach a goal while avoiding repulsive gradients. 
 
 ```yamlex
+# required params: pose_frame, motion_topic
 ReachGoal: {
   buffer: {bf_chem: {param_keys: [pose_frame]} },
   mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_chem', moving: False, static: True}]},
@@ -220,6 +223,8 @@ ReachGoal: {
 }
 ```
 
+**Important Note**: The successful creation of the components is only ensured when all required param_keys are handed over to the SoCoordinator/SOComponents class. 
+ To ease the implementation, the required param keys should be stated in a comment above the configuration specification! 
 
 ### so_mapping(.py)
 
@@ -249,7 +254,7 @@ Decision Strategy
 
 Module option includes class Option which allows to store the options defined in so_expert_knowledge.yaml as python class objects. 
 
-The class is fairly simple and solely contains two variables:
+The class is fairly simple and solely contains three variables:
 
 ```python
 class Option(object):
@@ -257,6 +262,7 @@ class Option(object):
     def __init__(self, option):
         self._config_key = option[0]
         self.score = option[1]
+        self.params = option[2]
 ```
 
 ### decision_strategy(.py)
@@ -270,7 +276,7 @@ class DecisionStrategy(object):
     
     def select(self):
         [selection mechanism]
-        return config_key
+        return [config_key, params]
 ```
 The class needs two parameters:
 `so_goal` is the self-organization goal and has to match one key used in the provided expert knowledge.
@@ -286,6 +292,8 @@ Method select should return a configuration key as this will be used in the comp
 The currently implemented selection mechanism checks if only one option is mapped to the self-organization goal. 
 In case that yes, it will return the configuration key of this option. 
 Otherwise, it will check which option has the highest score and return the configuration key of this option.
+Additionally to the configuration key, the select method returns the parameters specified with the option. 
+These will be used as optional parameters in SOComponents. 
 
 
 Components Factory: so_components(.py)
