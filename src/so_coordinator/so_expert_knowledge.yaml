@@ -2,7 +2,8 @@
 # option: [config_key, score, parameters]
 # parameters: {component_key: {dict of kwargs}}
 
-ReachGoal: [[ChemotaxisGe, 1.0, { } ]]
+ReachGoal: [[ChemotaxisGe, 1.0, { } ],
+            [ChemotaxisBalch, 1.0, {}]]
 
 CollectiveExploration: [[FlockingReyChemotaxisBalch, 1.0, {}]]
 
