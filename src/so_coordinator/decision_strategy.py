@@ -26,17 +26,19 @@ class DecisionStrategy(object):
     def select(self):
         """
         method selecting the coordination mechanism
-        :return: configuration key for self-organization components creation
+        :return: configuration key for self-organization components creation,
+                 parameters of selected options
         """
 
         # only one element available
         if len(self.options) == 1:
-            return self.options[0].config_key
+            return [self.options[0].config_key, self.options[0].params]
 
         # several elements: take element with highest score
         else:
             max_vals = [item.score for item in self.options]
-            return self.options[max_vals.index(max(max_vals))].config_key
+            index = max_vals.index(max(max_vals))
+            return [self.options[index].config_key, self.options[index].params]
 
     @staticmethod
     def load_options(so_goal, expert_knowledge):

@@ -1,24 +1,26 @@
 # Mapping so_goal - options (List of Patterns & scores)
+# option: [config_key, score, parameters]
+# parameters: {component_key: {dict of kwargs}}
 
-ReachGoal: [[ChemotaxisGe, 1.0]]
+ReachGoal: [[ChemotaxisGe, 1.0, { } ]]
 
-CollectiveExploration: [[FlockingReyChemotaxisBalch, 1.0]]
+CollectiveExploration: [[FlockingReyChemotaxisBalch, 1.0, {}]]
 
-FormationControl: [[FlockingReyExploration, 1.0]]
+FormationControl: [[FlockingReyExploration, 1.0, {}]]
 
-CircleFormation: [[MorphogenesisBarycenterChemotaxisBalch, 1.0]]
+CircleFormation: [[MorphogenesisBarycenterChemotaxisBalch, 1.0, {}]]
 
-Foraging: [[Foraging, 1.0]]
+Foraging: [[Foraging, 1.0, {}]]
 
-IndividualExploration: [[ExplorationChemotaxisGe, 1.0]]
+IndividualExploration: [[ExplorationChemotaxisGe, 1.0, {}]]
 
-FindBarycenter: [[MorphogenesisBarycenter, 1.0]]
+FindBarycenter: [[MorphogenesisBarycenter, 1.0,{}]]
 
-MaxValue: [[GossipMax, 1.0]]
+MaxValue: [[GossipMax, 1.0, {}]]
 
-UniformDistribution: [[RepulsionFernandez, 1.0]]
+UniformDistribution: [[RepulsionFernandez, 1.0, {}]]
 
-CollisionAvoidance: [[CollisionAvoidance, 1.0]]
+CollisionAvoidance: [[CollisionAvoidance, 1.0, {}]]
 
-AgentCollisionAvoidance: [[RepulsionGradient, 1.0],
-                          [RepulsionFernandez, 1.0]]
+AgentCollisionAvoidance: [[RepulsionGradient, 1.0, {}],
+                          [RepulsionFernandez, 1.0, {bf_uniform: {view_distance: 1.5} } ]]

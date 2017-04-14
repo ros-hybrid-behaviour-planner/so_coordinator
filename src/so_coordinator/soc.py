@@ -59,7 +59,10 @@ class SoCoordinator(NetworkBehavior):
         self.params = params
         self.mapping = mapping
         self.components_class = components_class
-        self.optional_params = optional_params
+        if optional_params is None:
+            self.optional_params = {}
+        else:
+            self.optional_params = optional_params
         self.id = id
 
         # init parent class (NetworkBehaviour)
@@ -72,14 +75,16 @@ class SoCoordinator(NetworkBehavior):
 
         # 1) Expert Knowledge + Decision Making Strategy
         self.selector = decision(so_goal, os.path.join(path, expert_knowledge))
-        config_key = self.selector.select()
+        selection = self.selector.select()
+        # combine optional params and parameters included in option
+        selection[1].update(self.optional_params)
 
         # 2) Creation of SO Components based on selected so configuration
         self.components = create_from_yaml(
             os.path.join(path, pattern_knowledge), id,
-            planner_prefix=self.get_manager_prefix(), config_key=config_key,
+            planner_prefix=self.get_manager_prefix(), config_key=selection[0],
             params=params, mapping=mapping, components_class=components_class,
-            optional_params=optional_params)
+            optional_params=selection[1])
 
     def remove_components(self):
         """
