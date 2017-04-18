@@ -2,8 +2,10 @@
 # option: [config_key, score, parameters]
 # parameters: {component_key: {dict of kwargs}}
 
+# ChemotaxisBalch gets lower score as it does not cover overlapping gradients
+# problem case
 ReachGoal: [[ChemotaxisGe, 1.0, { } ],
-            [ChemotaxisBalch, 1.0, {}]]
+            [ChemotaxisBalch, 0.9, {}]]
 
 CollectiveExploration: [[FlockingReyChemotaxisBalch, 1.0, {}]]
 
