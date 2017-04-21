@@ -8,11 +8,11 @@ Module including self-organization coordinator
 
 import os
 import rospy
+from rhbp_core.srv import RemoveBehaviour, RemoveGoal
 from behaviour_components.network_behavior import NetworkBehavior
 from so_coordinator.so_components import SOComponents, create_from_yaml
 from so_mapping import SO_MAPPING
 from decision_strategy import DecisionStrategy
-from rhbp_core.srv import RemoveBehaviour, RemoveGoal
 
 
 class SoCoordinator(NetworkBehavior):
@@ -89,7 +89,7 @@ class SoCoordinator(NetworkBehavior):
 
     def remove_components(self):
         """
-        method to remove components
+        method to remove components from manager and from SOComponents class
         :return:
         """
         rospy.wait_for_service(self.get_manager_prefix() +

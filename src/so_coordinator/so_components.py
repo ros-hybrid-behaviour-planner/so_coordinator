@@ -65,7 +65,7 @@ class SOComponents(object):
     def create_components(self, specs):
         """
         Method to dynamically create required components for self-organization
-        based on given specification
+        based on given specification / configuration
         stores components in dictionaries defined in init
         :param specs: specification of RHBP components
         """
@@ -240,9 +240,6 @@ class SOComponents(object):
                     [modifier, condition_key], e.g. [Negation, c_goal]
         :return: condition object
         """
-
-        condition = None
-
         # simple condition
         if lst[0] == 'None':
             condition = self.conditions[lst[1]]
@@ -299,17 +296,17 @@ def create_from_yaml(file_path, id, components_class=SOComponents,
     create SO components from yaml specification
     either hand over yaml file with one specification only or specify config
     key
-    :param file_path: path to yaml file
+    :param file_path: path to yaml file including configuration / specifcation
     :param id: id of the robot
     :param components_class: factory to create RHBP components
-    :param planner_prefix: prefix of RHBP instance
+    :param planner_prefix: prefix of RHBP instance to assign components to
     :param config_key: key for specification in yaml file
     :param mapping: mapping from strings to classes
     :param params: list of agent specific parameters to be inserted by
                    pattern creation
     :param optional_params: dictionary of parameters to be adjusted for
                             each component as required by overall setting
-    :return: components_class instance containing required RHBP components
+    :param name: unique name for SoComponents instance
     """
 
     # load yaml file

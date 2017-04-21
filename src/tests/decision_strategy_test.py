@@ -26,22 +26,22 @@ class DecisionStrategyTest(unittest.TestCase):
 
         # only one possible answer / direct mapping
         strategy = DecisionStrategy('ReachGoal', path)
-        self.assertEqual(strategy.select(), 'ChemotaxisGe')
-        self.assertEqual(len(strategy.options), 1)
+        self.assertEqual(strategy.select(), ['ChemotaxisGe', {}])
+        self.assertEqual(len(strategy.options), 2)
 
         # more than one option available
         strategy = DecisionStrategy('AgentCollisionAvoidance', path)
-        self.assertEqual(strategy.select(), 'RepulsionGradient')
+        self.assertEqual(strategy.select(), ['RepulsionGradient', {}])
         self.assertTrue(all(isinstance(el, Option) for el in strategy.options))
         self.assertEqual(len(strategy.options), 2)
 
         # add option with score with lower value
-        strategy.options.append(Option(['Test', 0.75]))
-        self.assertEqual(strategy.select(), 'RepulsionGradient')
+        strategy.options.append(Option(['Test', 0.75, {}]))
+        self.assertEqual(strategy.select(), ['RepulsionGradient', {}])
 
         # add option with score with higher value
-        strategy.options.append(Option(['Test', 1.75]))
-        self.assertEqual(strategy.select(), 'Test')
+        strategy.options.append(Option(['Test', 1.75, {}]))
+        self.assertEqual(strategy.select(), ['Test', {}])
 
 
 # run tests - start roscore before running tests

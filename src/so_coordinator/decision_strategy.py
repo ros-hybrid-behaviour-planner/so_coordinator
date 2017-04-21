@@ -17,7 +17,7 @@ class DecisionStrategy(object):
     def __init__(self, so_goal, expert_knowledge):
         """
         initialization
-        :param so_goal: self organization goal
+        :param so_goal: self organization goal to be pursued
         :param expert_knowledge: path to expert knowledge yaml file
         """
         # store self-organization options
@@ -26,8 +26,8 @@ class DecisionStrategy(object):
     def select(self):
         """
         method selecting the coordination mechanism
-        :return: configuration key for self-organization components creation,
-                 parameter dict of selected options
+        :return: [configuration key for self-organization components creation,
+                 parameter dict of selected options]
         """
 
         # only one element available

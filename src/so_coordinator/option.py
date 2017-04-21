@@ -3,7 +3,7 @@ Created on 11.04.2017
 
 @author: kaiser
 
-Module including class to store mapping / options of expert knowledge
+Module including class to store options defined in expert knowledge
 """
 
 

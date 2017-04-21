@@ -9,7 +9,7 @@ The following files and modules are included:
 * **soc.py**: module containing self-organization coordinator 
 
 2) Expert Knowledge
-* **so_expert_knowledge.yaml**: mapping self-organization goal to options [configuration key, score]
+* **so_expert_knowledge.yaml**: mapping self-organization goal to options [configuration key, score, parameters]
 * **so_specification.py**: dictionary including configurations per configuration key
 * **so_mapping.py**: dictionary including mapping string to class for RHBP components 
 
@@ -31,7 +31,7 @@ Therewith, each Self-Organization Coordinator has an own RHBP instance which wil
 
 The use of the Self-Organization Coordinator has two advantages:
 1) It encapsulates the self-organization behaviour and eases the use of different self-organization patterns / configurations in a complex setting
-2) It takes over the selection of the coordination mechanism from the system designer
+2) It relieves the system designer from the selection of the coordination mechanism
 
 ```python
 class SoCoordinator(NetworkBehavior):
@@ -69,7 +69,7 @@ When an object of SoCoordinator is created, the init method of NetworkBehaviour 
 Afterwards, the Coordination Mechanism Selection takes place. 
 First the decision making strategy implementation decides based on the provided expert knowledge which configuration to use.
 It returns a configuration key which is handed over to the components class. 
-Furthermore, a dictionary with parameters is returned which will be updated with the optional parameters and handed over to SOComponents using keyword argument `optional_params`. 
+Furthermore, a dictionary with parameters is returned by the decision making strategy which will be updated with the optional parameters and handed over to SOComponents using keyword argument `optional_params`. 
 The components class creates and stores the required components, which are specified in the pattern knowledge yaml. 
 The created components are associated with the RHBP instance of the SoCoordinator. 
 
@@ -143,7 +143,7 @@ The specification dictionary itself can include the following keys:
 * **preconditions**: to specify preconditions of RHBP behaviours
 * **goals**: RHBP Goals (e.g. from package rhbp_core)
 
-Not all components have to be specified, e.g. when no goal is needed in the implementation, the goal dictionary can be left empty. 
+Not all components have to be specified, e.g. when no goal is needed in the implementation, the goals dictionary can be left empty. 
 
 Except for the buffer and preconditions, each component definition follows the same structure:
 
@@ -280,7 +280,7 @@ class DecisionStrategy(object):
 ```
 The class needs two parameters:
 `so_goal` is the self-organization goal and has to match one key used in the provided expert knowledge.
- `expert_knowledge` is the path to the expert knowledge yaml file, e.g. so_expert_knowledge.yaml.
+ `expert_knowledge` is the path to the expert knowledge yaml file, e.g. to so_expert_knowledge.yaml.
 
 The options available for the DecisionStrategy are loaded first. 
 This is done by reading in the expert_knowledge yaml file. 
@@ -290,10 +290,10 @@ The stored options are used in method select to determine the most appropriate c
 Method select should return a configuration key as this will be used in the components factory to create the RHBP components.
 
 The currently implemented selection mechanism checks if only one option is mapped to the self-organization goal. 
-In case that yes, it will return the configuration key of this option. 
+In this case, it will return the configuration key of this option. 
 Otherwise, it will check which option has the highest score and return the configuration key of this option.
 Additionally to the configuration key, the select method returns the parameters specified with the option. 
-These will be used as optional parameters in SOComponents. 
+These will be used as optional parameters in SOComponents to adjust the configuration to match the self-organization goal. 
 
 
 Components Factory: so_components(.py)

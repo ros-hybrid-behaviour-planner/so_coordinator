@@ -4,6 +4,7 @@ Created on 24.03.2017
 @author: kaiser
 
 Module containing mapping from strings to classes
+contains rhbp components, rhbp utils, rhbp_selforga, so_data
 """
 
 from behaviour_components.activators import MultiSensorCondition, \
