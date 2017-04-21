@@ -1,0 +1,292 @@
+# List of patterns/mechanism combinations including goals
+
+# ChemotaxisGe: Reach Goal
+# required params: pose_frame, motion_topic
+ChemotaxisGe: {
+  buffer: {bf_chem: {param_keys: [pose_frame]} },
+  mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_chem', moving: True, static: True}]},
+  activators: {a_bool: [BooleanActivator, {}],
+               a_lin: [LinearActivator, {zeroActivationValue: 2.0, fullActivationValue: 0.0, minActivation: 0.0, maxActivation: 1.0}]},
+  sensors: {s_goal: [GradientSensor, {mechanism: 'm_chem'}],
+            s_goal_reached: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}],
+            s_dist: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}]},
+  conditions: {c_goal: [VectorBoolCondition, {sensor: 's_goal', activator: 'a_bool'}],
+               c_goal_reached: [GoalBoolCondition, {sensor: 's_goal_reached', activator: 'a_bool'}],
+               c_dist: [VectorDistCondition, {sensor: 's_dist', activator: 'a_lin', optional: True}]},
+  behaviours: {b_chem: [MoveBehaviour, {mechanism: 'm_chem', param_keys: [motion_topic], effects: [['c_dist', -1.0, float], ['c_goal_reached', 1.0, bool]]}]},
+  preconditions: {b_chem: [[Negation, 'c_goal_reached'], [None, 'c_dist'], [None, 'c_goal']]},
+  goals: {g_chem: [GoalBase, {permanent: False, conditions: [[None, 'c_goal_reached']]}]}
+}
+
+
+# ChemotaxisBalch: Reach Goal
+# required params: pose_frame, motion_topic
+ChemotaxisBalch: {
+  buffer: {bf_chem: {param_keys: [pose_frame]} },
+  mechanisms: {m_chem: [ChemotaxisBalch, {buffer: 'bf_chem', moving: True, static: True}]},
+  activators: {a_bool: [BooleanActivator, {}],
+               a_lin: [LinearActivator, {zeroActivationValue: 2.0, fullActivationValue: 0.0, minActivation: 0.0, maxActivation: 1.0}]},
+  sensors: {s_goal: [GradientSensor, {mechanism: 'm_chem'}],
+            s_goal_reached: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}],
+            s_dist: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}]},
+  conditions: {c_goal: [VectorBoolCondition, {sensor: 's_goal', activator: 'a_bool'}],
+               c_goal_reached: [GoalBoolCondition, {sensor: 's_goal_reached', activator: 'a_bool'}],
+               c_dist: [VectorDistCondition, {sensor: 's_dist', activator: 'a_lin', optional: True}]},
+  behaviours: {b_chem: [MoveBehaviour, {mechanism: 'm_chem', param_keys: [motion_topic], effects: [['c_dist', -1.0, float], ['c_goal_reached', 1.0, bool]]}]},
+  preconditions: {b_chem: [[Negation, 'c_goal_reached'], [None, 'c_dist'], [None, 'c_goal']]},
+  goals: {g_chem: [GoalBase, {permanent: False, conditions: [[None, 'c_goal_reached']]}]}
+}
+
+
+# FlockingRey + Chemotaxis: Collective Exploration
+# required params: pose_frame, motion_topic
+FlockingReyChemotaxisBalch: {
+  buffer: {bf_flocking: {view_distance: 2.0, param_keys: [pose_frame]} },
+  mechanisms: {m_flocking: [FlockingRey, {buffer: 'bf_flocking', maxvel: 0.75}],
+               m_chemotaxis: [ChemotaxisBalch, {buffer: 'bf_flocking', maxvel: 0.25, moving: False, static: True} ]},
+  activators: {a_bool: [BooleanActivator, {} ] },
+  sensors: {s_flocking: [GradientSensor, {mechanism: ['m_flocking', 'm_chemotaxis']}] },
+  conditions: {c_flocking: [VectorBoolCondition, {sensor: 's_flocking', activator: 'a_bool'}] },
+  behaviours: {b_flocking: [MoveBehaviour, {mechanism: ['m_flocking', 'm_chemotaxis'], param_keys: [motion_topic], 'effects': [['c_flocking', -1.0, bool]] } ] },
+  preconditions: {b_flocking: [[None, 'c_flocking']] },
+  goals: { }
+}
+
+
+# FlockingRey: FormationControl (Example 6 of flockingrey_single/multi_sim.launch)
+# required params: pose_frame, motion_topic
+FlockingReyExploration: {
+  buffer: {bf_flocking: {view_distance: 2.0, param_keys: [pose_frame]} },
+  mechanisms: {m_flocking: [FlockingRey, {buffer: 'bf_flocking', maxvel: 1.0}],
+               m_random: [Exploration, {buffer: 'bf_flocking', minvel: 0.5}]},
+  activators: {a_bool: [BooleanActivator, {} ] },
+  sensors: {s_flocking: [GradientSensor, {mechanism: 'm_flocking'}] },
+  conditions: {c_flocking: [VectorBoolCondition, {sensor: 's_flocking', activator: 'a_bool'}] },
+  behaviours: {b_flocking: [MoveBehaviour, {mechanism: 'm_flocking', param_keys: [motion_topic], effects: [['c_flocking', -1.0, bool]] } ],
+               b_random: [MoveBehaviour, {mechanism: 'm_random', param_keys: [motion_topic], effects: [['c_flocking', 1.0, bool]]}]},
+  preconditions: {b_flocking: [[None, 'c_flocking']],
+                  b_random: [[Negation, 'c_flocking']]},
+  goals: { }
+}
+
+
+# MorphogenesisBarycenter + ChemotaxisBalch: CircleFormation (Example morphogenesissim.launch (rhbpSelforganizationTest))
+# required params: pose_frame, motion_topic
+MorphogenesisBarycenterChemotaxisBalch: {
+  buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0, param_keys: [pose_frame]} },
+  mechanisms: { m_morph: [MorphogenesisBarycenter, {buffer: 'bf_morph', frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center} ],
+                m_chem: [ChemotaxisBalch, {buffer: 'bf_morph', moving: False, static: True, minvel: 1.0, frames: ['Center']}] },
+  activators: { a_bool: [BooleanActivator, {} ] },
+  sensors: { s_morph: [GradientSensor, {mechanism: 'm_morph', sensor_type: value}],
+             s_value: [KnowledgeFactSensor, {pattern: [value, '*']}],
+             s_state: [GradientSensor, {mechanism: 'm_morph', sensor_type: state} ],
+             s_last_state: [KnowledgeFactSensor, {pattern: [state, '*']}],
+             s_goal: [GradientSensor, {mechanism: 'm_chem'}],
+             s_goal_reached: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}] },
+  conditions: { c_morph: [ChangeFloatCondition, {sensors: ['s_morph', 's_value'], activator: 'a_bool'}],
+                c_state: [ChangeStringCondition, {sensors: ['s_state', 's_last_state'], activator: 'a_bool'}],
+                c_goal: [VectorBoolCondition, {sensor: 's_goal', activator: 'a_bool'}],
+                c_goal_reached: [GoalBoolCondition, {sensor: 's_goal_reached', activator: 'a_bool'}] },
+  behaviours: { b_morph: [DecisionBehaviour, {mechanism: 'm_morph', effects: [['c_morph', -1.0, bool], ['c_state', -1.0, bool], ['c_goal', 1.0, bool]], value_key: value, state_key: state}],
+                b_chem: [MoveBehaviour, {mechanism: 'm_chem', param_keys: [motion_topic], effects: [['c_goal_reached', 1.0, bool]], }] },
+  preconditions: {b_morph: [[Disjunction, [[None, 'c_morph'], [None, 'c_state']]]],
+                  b_chem: [[Negation, 'c_goal_reached'], [None, 'c_goal'], [Negation, [Disjunction, [[None, 'c_morph'], [None, 'c_state']]]]]},
+  goals: { g_morph: [GoalBase, {permanent: False, conditions: [[None, 'c_goal_reached']]}]}
+}
+
+
+# Foraging: Explore and Exploit - Example foraging_multi_sim.launch / foraging_single_sim.launch
+# required params: pose_frame, motion_topic
+Foraging: {
+  buffer: { bf_pheromone: {view_distance: 1.5, min_diffusion: 0.3, aggregation_distance: 0.1, store_all: False, framestorage: ['Pheromone', 'robot'], ev_thread: True, ev_time: 1, param_keys: [pose_frame]},
+            bf_gradient: {view_distance: 1.5, aggregation_distance: 0.1, store_all: False, ev_thread: True, ev_time: 1, framestorage: ['Nest', 'Food', 'robot'], param_keys: [pose_frame]} },
+  mechanisms: { m_repulsion: [CollisionAvoidance, {buffer: 'bf_gradient', moving: True, static: False, maxvel: 0.5}],
+                m_deposit_pheromones: [DepositPheromones, {buffer: 'bf_gradient', frames: ['Nest'], moving: True, minvel: 0.5, maxvel: 1.0, ev_factor: 0.9, ev_time: 5}],
+                m_return_nest: [ChemotaxisGe, {buffer: 'bf_gradient', moving: True, static: True, frames: ['Nest'], minvel: 0.5, maxvel: 1.0}],
+                m_decision: [ForagingDecision, {probability: 0.5}],
+                m_exploitation: [Exploitation, {buffer: 'bf_pheromone', frames: ['Pheromone'], minvel: 0.5, maxvel: 1.0} ],
+                m_follow_food: [ChemotaxisGe, {buffer: 'bf_gradient', static: True, moving: True, frames: ['Food'], minvel: 0.5}],
+                m_sense_trail: [FollowAll, {buffer: 'bf_pheromone', moving: False, frames: ['Pheromone']}],
+                m_exploration: [Exploration, {buffer: 'bf_gradient', minvel: 0.5}] },
+  activators: { a_bool: [BooleanActivator, {}],
+                a_f_bool: [BooleanActivator, {desiredValue: False}]},
+  sensors: { s_food: [GradientSensor, {mechanism: 'm_follow_food', sensor_type: goal}],
+             s_food_reached: [GradientSensor, {mechanism: 'm_follow_food', sensor_type: goal, initial_value: True}],
+             s_nest_reached: [GradientSensor, {mechanism: 'm_deposit_pheromones', sensor_type: goal, initial_value: True}],
+             s_exploit: [KnowledgeSensor, {pattern: [state, 'Exploitation']}],
+             s_explore: [KnowledgeSensor, {pattern: [state, 'Exploration']}],
+             s_trail: [GradientSensor, {mechanism: 'm_exploitation'}],
+             s_trail_view: [GradientSensor, {mechanism: 'm_sense_trail'}],
+             s_return: [KnowledgeSensor, {pattern: [state, 'Return']}],
+             s_none: [KnowledgeSensor, {pattern: [state, 'None']}],
+             s_max_dist: [GradientSensor, {mechanism: 'm_deposit_pheromones', sensor_type: goal, initial_value: True}],
+             s_no_state: [KnowledgeSensor, {pattern: [state, '*']}]},
+  conditions: { c_food: [VectorBoolCondition, {sensor: 's_food', activator: 'a_bool'}],
+                c_food_reached: [GoalBoolCondition, {sensor: 's_food_reached', activator: 'a_bool'}],
+                c_nest_reached: [GoalBoolCondition, {sensor: 's_nest_reached', activator: 'a_bool'}],
+                c_exploit: [BoolFCondition, {sensor: 's_exploit', activator: 'a_bool'}],
+                c_exploration: [BoolFCondition, {sensor: 's_explore', activator: 'a_bool'}],
+                c_trail: [VectorBoolCondition, {sensor: 's_trail', activator: 'a_bool'}],
+                c_trail_view: [VectorBoolCondition, {sensor: 's_trail_view', activator: 'a_bool'}],
+                c_return: [BoolFCondition, {sensor: 's_return', activator: 'a_bool'}],
+                c_none: [BoolFCondition, {sensor: 's_none', activator: 'a_bool'}],
+                c_max_dist: [MaxDistCondition, {sensor: 's_max_dist', activator: 'a_bool', max: 7}],
+                c_no_state: [BoolTCondition, {sensor: 's_no_state', activator: 'a_f_bool'}] },
+  behaviours: { b_decision: [DecisionStateBehaviour, {mechanism: 'm_decision', state_key: state, effects: [['c_exploration', 1.0, bool], ['c_exploit', 1.0, bool]]}],
+                b_return_state: [SetStateBehaviour, {state: 'Return', state_key: state, effects: [['c_return', -1.0, bool]]}],
+                b_lost: [SetStateBehaviour, {state: 'None', state_key: state, effects: [['c_none', -1.0, bool]]}],
+                b_no_trail: [SetStateBehaviour, {state: 'None', state_key: state, effects: [['c_none', -1.0, bool]]}],
+                b_max_dist: [SetStateBehaviour, {state: 'None', state_key: state, effects: [['c_none', -1.0, bool]]}],
+                b_no_state: [SetStateBehaviour, {state: 'None', state_key: state, effects: [['c_none', -1.0, bool]]}],
+                b_return: [MoveBehaviour, {mechanism: 'm_return_nest', param_keys: [motion_topic], effects: [['c_nest_reached', 1.0, bool]]}],
+                b_deposit: [MoveBehaviour, {mechanism: 'm_deposit_pheromones', param_keys: [motion_topic], effects: [['c_nest_reached', 1.0, bool]]}],
+                b_follow_food: [MoveBehaviour, {mechanism: 'm_follow_food', param_keys: [motion_topic], effects: [['c_food_reached', 1.0, bool]]}],
+                b_exploit: [MoveBehaviour, {mechanism: ['m_exploitation', 'm_repulsion'], param_keys: [motion_topic], effects: [['c_food', 1.0, bool]]}],
+                b_turn: [TurnBehaviour, {mechanism: 'm_exploitation', param_keys: [motion_topic], effects: [['c_trail', 1.0, bool]]}],
+                b_explore: [MoveBehaviour, {mechanism: ['m_exploration', 'm_repulsion'], param_keys: [motion_topic], effects: [['c_food', 1.0, bool]]}] },
+  preconditions: {b_decision: [[None, 'c_nest_reached'], [Disjunction, [[None, 'c_return'], [None, 'c_none']]]],
+                  b_return_state: [[None, 'c_food_reached'], [Negation, 'c_return']],
+                  b_lost: [[None, 'c_exploit'], [Negation, 'c_food'], [Negation, 'c_food_reached'], [Negation, 'c_nest_reached'], [Negation, 'c_trail']],
+                  b_no_trail: [[None, 'c_exploit'], [Negation, 'c_food'], [Negation, 'c_trail_view'], [None, 'c_nest_reached']],
+                  b_max_dist:  [[None, 'c_max_dist'], [None, 'c_exploration']],
+                  b_no_state: [[None, 'c_no_state']],
+                  b_return: [[Negation, 'c_nest_reached'], [None, 'c_none']],
+                  b_deposit: [[Negation, 'c_nest_reached'], [None, 'c_return']],
+                  b_follow_food: [[Conjunction, [[None, 'c_food'], [Negation, 'c_food_reached']]], [Disjunction, [[None, 'c_exploit'], [None, 'c_exploration']]]],
+                  b_exploit: [[Conjunction, [[None, 'c_trail'], [Negation, 'c_food']]], [None, 'c_exploit']],
+                  b_turn: [[Conjunction, [[Negation, 'c_trail'], [None, 'c_trail_view']]], [None, 'c_nest_reached'], [None, 'c_exploit']],
+                  b_explore: [[Conjunction, [[Negation, 'c_food'], [Negation, 'c_food_reached']]], [Conjunction, [[None, 'c_exploration'], [Negation, 'c_max_dist']]]] },
+  goals: { goal: [GoalBase, {permanent: False, conditions: [[None, 'c_food']]}]}
+}
+
+
+# Exploration: Individual Exploration
+# required params: pose_frame, motion_topic
+ExplorationChemotaxisGe: {
+  buffer: {bf_ex: {view_distance: 2.0, param_keys: [pose_frame]} },
+  mechanisms: {m_chem: [ChemotaxisGe, {buffer: 'bf_ex', static: True, moving: True, minvel: 0.5, frames: ['target']}],
+               m_ex: [Exploration, {buffer: 'bf_ex', minvel: 0.5}],
+               m_rep: [CollisionAvoidance, {buffer: 'bf_ex', moving: True, static: False, maxvel: 0.5, frames: ['robot']}]},
+  activators: { a_bool: [BooleanActivator, {} ] },
+  sensors: {s_grad: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}],
+            s_grad_reached: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal, initial_value: True}] },
+  conditions: {c_grad: [VectorBoolCondition, {sensor: 's_grad', activator: 'a_bool'}],
+               c_grad_reached: [GoalBoolCondition, {sensor: 's_grad_reached', activator: 'a_bool'}] },
+  behaviours: {b_chem: [MoveBehaviour, {mechanism: 'm_chem', param_keys: [motion_topic], effects: [['c_grad_reached', 1.0, bool]]}],
+               b_ex: [MoveBehaviour, {mechanism: ['m_ex', 'm_rep'], param_keys: [motion_topic], effects: [['c_grad', 1.0, bool]]}]},
+  preconditions: {b_chem: [[Conjunction, [[None, 'c_grad'], [Negation, 'c_grad_reached']]]],
+                  b_ex: [[Conjunction, [[Negation, 'c_grad'], [Negation, 'c_grad_reached']]]] },
+  goals: {g_chem: [GoalBase, {permanent: False, conditions: [[None, 'c_grad_reached']]}]}
+}
+
+
+# MorphogenesisBarycenter: Find Barycenter
+# required params: pose_frame
+MorphogenesisBarycenter: {
+  buffer: { bf_morph: {aggregation: {'DEFAULT': newframe}, view_distance: 2.0, param_keys: [pose_frame]} },
+  mechanisms: { m_morph: [MorphogenesisBarycenter, {buffer: 'bf_morph', frame: morphogenesis, key: dist, moving: True, static: False, center_frame: Center}],
+                m_center: [ChemotaxisBalch, {buffer: 'bf_morph', moving: False, static: True, frames: ['Center']}]},
+  activators: { a_bool: [BooleanActivator, {} ] },
+  sensors: { s_morph: [GradientSensor, {mechanism: 'm_morph', sensor_type: value}],
+             s_value: [KnowledgeFactSensor, {pattern: [value, '*']}],
+             s_state: [GradientSensor, {mechanism: 'm_morph', sensor_type: state} ],
+             s_last_state: [KnowledgeFactSensor, {pattern: [state, '*']}],
+             s_center: [GradientSensor, {mechanism: 'm_center'}]},
+  conditions: { c_morph: [ChangeFloatCondition, {sensors: ['s_morph', 's_value'], activator: 'a_bool'}],
+                c_state: [ChangeStringCondition, {sensors: ['s_state', 's_last_state'], activator: 'a_bool'}],
+                c_center: [GradientBoolCondition, {sensor: 's_center', activator: 'a_bool'}]},
+  behaviours: { b_morph: [DecisionBehaviour, {mechanism: 'm_morph', effects: [['c_morph', -1.0, bool], ['c_state', -1.0, bool], ['c_center', 1.0, bool]], value_key: value, state_key: state}]},
+  preconditions: { b_morph: [[Disjunction, [[None, 'c_morph'], [None, 'c_state']]]] },
+  goals: { g_morph: [GoalBase, {permanent: False, conditions: [[None, 'c_center']]}] }
+}
+
+
+# GossipMax: Maximum Value
+# required params: pose_frame, value, initial_value
+GossipMax: {
+  buffer: {bf_gossip: {param_keys: [pose_frame], view_distance: 2.0} },
+  mechanisms: {m_gossip: [GossipMax, {buffer: 'bf_gossip', frame: gossip, key: max, param_keys: [value], diffusion: 3.0} ] },
+  sensors: {s_gossip: [GradientSensor, {mechanism: 'm_gossip', sensor_type: value, param_keys: [initial_value]}],
+            s_value: [KnowledgeFactSensor, {pattern: [value, '*']}] },
+  activators: {a_bool: [BooleanActivator, {}] },
+  conditions: {c_gossip: [ChangeFloatCondition, {sensors: ['s_gossip', 's_value'], activator: 'a_bool'}] },
+  behaviours: {b_gossip: [DecisionBehaviour, {mechanism: 'm_gossip', effects: [['c_gossip', -1.0, bool]], value_key: value}] },
+  preconditions: {b_gossip: [[None, 'c_gossip']]},
+  goals: {g_gossip: [GoalBase, {permanent: True, conditions: [[Negation, 'c_gossip']]}]}
+}
+
+
+# RepulsionFernandez: Uniform Distribution (Example repulsionsim.launch 5/6)
+# required params: pose_frame, motion_topic
+RepulsionFernandez: {
+  buffer: {bf_rep: {param_keys: [pose_frame], view_distance: 2.0} },
+  mechanisms: {m_rep: [RepulsionFernandez, {buffer: 'bf_rep'}]},
+  sensors: {s_bool: [GradientSensor, {mechanism: 'm_rep'}],
+            s_rep: [GradientSensor, {mechanism: 'm_rep'}] },
+  activators: {a_bool: [BooleanActivator, {}],
+               a_lin: [LinearActivator, {zeroActivationValue: 0, fullActivationValue: 1.5, minActivation: 0.0, maxActivation: 1.0}] },
+  conditions: {c_repulsion: [VectorBoolCondition, {sensor: 's_bool', activator: 'a_bool'}],
+               c_dist: [VectorDistCondition, {sensor: 's_rep', activator: 'a_lin', optional: True}] },
+  behaviours: {b_rep: [MoveBehaviour, {mechanism: 'm_rep', effects: [['c_dist', -1.0, float], ['c_repulsion', -1.0, bool]], param_keys: [motion_topic]}]},
+  preconditions: {b_rep: [[None, 'c_repulsion'], [None, 'c_dist']]},
+  goals: {g_uniform: [GoalBase, {permanent: True, conditions: [[Negation, 'c_repulsion']]}]}
+}
+
+
+# RepulsionGradient: Agent Collision Avoidance (Example repulsionsim.launch 1)
+# required params: pose_frame, motion_topic
+RepulsionGradient: {
+  buffer: {bf_uniform: {param_keys: [pose_frame], view_distance: 1.5} },
+  mechanisms: {m_rep: [RepulsionGradient, {buffer: 'bf_uniform'}]},
+  sensors: {s_bool: [GradientSensor, {mechanism: 'm_rep'}],
+            s_rep: [GradientSensor, {mechanism: 'm_rep'}] },
+  activators: {a_bool: [BooleanActivator, {}],
+               a_lin: [LinearActivator, {zeroActivationValue: 0, fullActivationValue: 1.5, minActivation: 0.0, maxActivation: 1.0}] },
+  conditions: {c_repulsion: [VectorBoolCondition, {sensor: 's_bool', activator: 'a_bool'}],
+               c_dist: [VectorDistCondition, {sensor: 's_rep', activator: 'a_lin', optional: True}] },
+  behaviours: {b_rep: [MoveBehaviour, {mechanism: 'm_rep', effects: [['c_dist', -1.0, float], ['c_repulsion', -1.0, bool]], param_keys: [motion_topic]}]},
+  preconditions: {b_rep: [[None, 'c_repulsion'], [None, 'c_dist']]},
+  goals: {g_uniform: [GoalBase, {permanent: True, conditions: [[Negation, 'c_repulsion']]}]}
+}
+
+
+# CollisionAvoidance: Chemotaxis Collision Avoidance mechanism
+# required params: pose_frame, motion_topic
+CollisionAvoidance: {
+  buffer: {bf_coll: {view_distance: 1.5, param_keys: [pose_frame]} },
+  mechanisms: {m_coll: [CollisionAvoidance, {buffer: 'bf_coll', moving: True, static: True, maxvel: 1.0}]},
+  activators: { a_bool: [BooleanActivator, {} ] },
+  sensors: {s_coll: [GradientSensor, {mechanism: 'm_coll'}]},
+  conditions: {c_coll: [VectorBoolCondition, {sensor: 's_coll', activator: 'a_bool'}]},
+  behaviours: {b_coll: [MoveBehaviour, {mechanism: 'm_coll', param_keys: [motion_topic], effects: [['c_coll', -1.0, bool]]}]},
+  preconditions: {b_coll: [[None, 'c_coll']]},
+  goals: {g_coll: [GoalBase, {permanent: True, conditions: [[Negation, 'c_coll']]}]}
+}
+
+
+# FollowAll: FollowPotentialField
+# required params: pose_frame, motion topic
+FollowAll: {
+  buffer: {bf_follow: {param_keys: [pose_frame]} },
+  mechanisms: {m_follow: [FollowAll, {buffer: 'bf_follow', moving: True, static: True, maxvel: 1.0, minvel: 0.5}]},
+  activators: {a_bool: [BooleanActivator, {}]},
+  sensors: {s_grad: [GradientSensor, {mechanism: 'm_follow'}]},
+  conditions: {c_grad: [VectorBoolCondition, {sensor: 's_grad', activator: 'a_bool'}]},
+  behaviours: {b_follow: [MoveBehaviour, {mechanism: 'm_follow', param_keys: [motion_topic], effects: [['c_grad', -1.0, float]]}]},
+  preconditions: {b_follow: [[None, 'c_grad']]},
+  goals: {}
+}
+
+# FollowMaxReach: FollowMaxPotential
+# required params: pose_frame, motion topic
+FollowMaxReach: {
+  buffer: {bf_follow: {param_keys: [pose_frame]} },
+  mechanisms: {m_follow: [FollowMaxReach, {buffer: 'bf_follow', moving: False, static: True, maxvel: 1.0, minvel: 0.5}],
+               m_coll: [CollisionAvoidance, {buffer: 'bf_follow', moving: True, static: True, maxvel: 1.0}]},
+  activators: {a_bool: [BooleanActivator, {}]},
+  sensors: {s_grad: [GradientSensor, {mechanism: 'm_follow'}]},
+  conditions: {c_grad: [VectorBoolCondition, {sensor: 's_grad', activator: 'a_bool'}]},
+  behaviours: {b_follow: [MoveBehaviour, {mechanism: ['m_follow', 'm_coll'], param_keys: [motion_topic], effects: [['c_grad', -1.0, float]]}]},
+  preconditions: {b_follow: [[None, 'c_grad']]},
+  goals: {}
+}

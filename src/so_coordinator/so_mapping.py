@@ -4,6 +4,7 @@ Created on 24.03.2017
 @author: kaiser
 
 Module containing mapping from strings to classes
+contains rhbp components, rhbp utils, rhbp_selforga, so_data
 """
 
 from behaviour_components.activators import MultiSensorCondition, \
@@ -20,11 +21,12 @@ from rhbp_selforga.behaviours import MoveBehaviour, TurnBehaviour, \
     DecisionBehaviour, DecisionStateBehaviour, SetStateBehaviour
 from rhbp_selforga.conditions import ChangeFloatCondition, \
     ChangeStringCondition, BoolTCondition, BoolFCondition, VectorBoolCondition,\
-    GoalBoolCondition, MaxDistCondition, VectorDistCondition
+    GoalBoolCondition, MaxDistCondition, VectorDistCondition, \
+    GradientBoolCondition
 from rhbp_selforga.gradientsensor import GradientSensor, SENSOR
 
 from so_data.chemotaxis import ChemotaxisGe, ChemotaxisBalch, \
-    CollisionAvoidance, FollowAll, AvoidAll, FollowMax, FollowMin, \
+    CollisionAvoidance, FollowAll, AvoidAll, FollowStrongest, FollowMin, \
     FollowMinReach, FollowMaxReach
 from so_data.decisions import MorphogenesisBarycenter, GossipMax, Quorum
 from so_data.flocking import Flocking
@@ -33,7 +35,8 @@ from so_data.foraging import ForagingDecision, DepositPheromones, \
     Exploitation, Exploration, STATE
 from so_data.repulsion import RepulsionFernandez, RepulsionGradient
 from so_data.sobuffer import SoBuffer, AGGREGATION
-from so_data.supplements import DepositPheromonesMin, DepositPheromonesRandom
+from so_data.supplements import DepositPheromonesMin, DepositPheromonesRandom, \
+    SpreadGradient
 
 
 SO_MAPPING = {
@@ -79,6 +82,7 @@ SO_MAPPING = {
     'VectorBoolCondition': VectorBoolCondition,
     'MaxDistCondition': MaxDistCondition,
     'GoalBoolCondition': GoalBoolCondition,
+    'GradientBoolCondition': GradientBoolCondition,
     'VectorDistCondition': VectorDistCondition,
     # Gradient Sensor
     'GradientSensor': GradientSensor,
@@ -91,7 +95,7 @@ SO_MAPPING = {
     'CollisionAvoidance': CollisionAvoidance,
     'FollowAll': FollowAll,
     'AvoidAll': AvoidAll,
-    'FollowMax': FollowMax,
+    'FollowStrongest': FollowStrongest,
     'FollowMin': FollowMin,
     'FollowMinReach': FollowMinReach,
     'FollowMaxReach': FollowMaxReach,
@@ -117,5 +121,6 @@ SO_MAPPING = {
     'AGGREGATION': AGGREGATION,
     # supplements
     'DepositPheromonesMin': DepositPheromonesMin,
-    'DepositPheromonesRandom': DepositPheromonesRandom
+    'DepositPheromonesRandom': DepositPheromonesRandom,
+    'SpreadGradient': SpreadGradient
 }
