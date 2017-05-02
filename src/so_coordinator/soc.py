@@ -21,8 +21,8 @@ class SoCoordinator(NetworkBehavior):
     behaviour and eases modelling complex problems
     """
 
-    def __init__(self, effects, so_goal, id='robot1', name='SoCoordinator',
-                 path=os.path.dirname(__file__),
+    def __init__(self, so_goal, correlations=None, id='robot1',
+                 name='SoCoordinator', path=os.path.dirname(__file__),
                  expert_knowledge='so_expert_knowledge.yaml',
                  pattern_knowledge='so_specification.yaml',
                  decision=DecisionStrategy,
@@ -33,7 +33,7 @@ class SoCoordinator(NetworkBehavior):
 
         """
         initialization
-        :param effects: effects of SoCoordinator (on higher level)
+        :param correlations: effects of SoCoordinator (on higher level)
         :param so_goal: self-organization goal used in coordination mechanism
                         selection
         :param id: id of the agent
@@ -65,10 +65,14 @@ class SoCoordinator(NetworkBehavior):
             self.optional_params = optional_params
         self.id = id
 
+        if correlations is None:
+            correlations = []
+
         # init parent class (NetworkBehaviour)
-        super(SoCoordinator, self).__init__(effects=effects, name=name,
+        super(SoCoordinator, self).__init__(name=name,
                                             requires_execution_steps=
                                             requires_execution_steps,
+                                            correlations=correlations,
                                             **kwargs)
 
         # Coordination Mechanism Selection
