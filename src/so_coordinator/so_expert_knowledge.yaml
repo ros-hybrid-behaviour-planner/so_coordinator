@@ -1,3 +1,9 @@
+# The so_expert_knowledge file contains a mapping between self-organization goal and a list of options.
+# Each option consists of a configuration key, a score and a parameter dictionary in the following form: `[config_key, score, params]`.
+# The score is a float number while the config_key has to match one of the keys in so_specifications.
+# The self-organization goal has to be a string.
+# The parameter dictionary maps component key to a dictionary of keyword arguments.
+
 # Mapping so_goal - options (List of Patterns & scores)
 # option: [config_key, score, parameters]
 # parameters: {component_key: {dict of kwargs}}
@@ -27,6 +33,8 @@ CollisionAvoidance: [[CollisionAvoidance, 1.0, {}]]
 
 AgentCollisionAvoidance: [[RepulsionGradient, 1.0, {}],
                           [RepulsionFernandez, 1.0, {bf_rep: {view_distance: 1.5} } ]]
+
+ExplorationPatrol: [ExplorationPatrol, 1.0, {}]
 
 FollowPotentialField: [[FollowAll, 1.0, {}]]
 

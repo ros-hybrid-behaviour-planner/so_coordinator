@@ -37,6 +37,7 @@ from so_data.repulsion import RepulsionFernandez, RepulsionGradient
 from so_data.sobuffer import SoBuffer, AGGREGATION
 from so_data.supplements import DepositPheromonesMin, DepositPheromonesRandom, \
     SpreadGradient
+from so_data.patrolling import Patrol
 
 
 SO_MAPPING = {
@@ -122,5 +123,7 @@ SO_MAPPING = {
     # supplements
     'DepositPheromonesMin': DepositPheromonesMin,
     'DepositPheromonesRandom': DepositPheromonesRandom,
-    'SpreadGradient': SpreadGradient
+    'SpreadGradient': SpreadGradient,
+    # patrolling
+    'Patrol': Patrol
 }

@@ -290,3 +290,17 @@ FollowMaxReach: {
   preconditions: {b_follow: [[None, 'c_grad']]},
   goals: {}
 }
+
+# ExplorationPatrol: Patrol and explore environment by repulsion from own and other pheromones
+# required params: pheromone_frame, pose_frame, motion topic
+# TODO
+ExplorationPatrol: {
+  buffer: {bf_patrol: {view_distance: 4.0, min_diffusion: 0.3, aggregation_distance: 0.1, store_all: False, framestorage: ['Pheromone'], ev_thread: False, ev_time: 1, param_keys: [pose_frame]}},
+  mechanisms: {m_patrol: [Patrol, {buffer: 'bf_patrol', moving: True, static: True, maxvel: 1.0, minvel: 0.5}]},
+  activators: {a_bool: [BooleanActivator, {}]},
+  sensors: {s_grad: [GradientSensor, {mechanism: 'm_patrol'}]},
+  conditions: {c_grad: [VectorBoolCondition, {sensor: 's_grad', activator: 'a_bool'}]},
+  behaviours: {b_follow: [MoveBehaviour, {mechanism: ['m_patrol'], param_keys: [motion_topic], effects: [['c_grad', -1.0, float]]}]},
+  preconditions: {b_follow: [[None, 'c_grad']]},
+  goals: {}
+}
