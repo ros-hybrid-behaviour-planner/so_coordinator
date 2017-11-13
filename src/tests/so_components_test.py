@@ -10,10 +10,9 @@ import unittest
 import rospy
 from so_coordinator.so_components import SOComponents
 from behaviour_components.managers import Manager
-from behaviour_components.activators import MultiSensorCondition, \
-    PublisherCondition, BooleanActivator, ThresholdActivator, GreedyActivator, \
+from behaviour_components.activators import BooleanActivator, ThresholdActivator, GreedyActivator, \
     LinearActivator
-from behaviour_components.conditions import Conjunction, Negation
+from behaviour_components.conditions import Conjunction, Negation, MultiSensorCondition, PublisherCondition
 from behaviour_components.goals import GoalBase
 from rhbp_selforga.behaviours import MoveBehaviour, DecisionBehaviour
 from rhbp_selforga.conditions import VectorDistCondition, GoalBoolCondition, \

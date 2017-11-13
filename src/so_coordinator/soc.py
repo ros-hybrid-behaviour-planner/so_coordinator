@@ -9,13 +9,13 @@ Module including self-organization coordinator
 import os
 import rospy
 from rhbp_core.srv import RemoveBehaviour, RemoveGoal
-from behaviour_components.network_behavior import NetworkBehavior
+from behaviour_components.network_behavior import NetworkBehaviour
 from so_coordinator.so_components import SOComponents, create_from_yaml
 from so_mapping import SO_MAPPING
 from decision_strategy import DecisionStrategy
 
 
-class SoCoordinator(NetworkBehavior):
+class SoCoordinator(NetworkBehaviour):
     """
     Self-organization coordinator which allows to encapsulate self-organising
     behaviour and eases modelling complex problems

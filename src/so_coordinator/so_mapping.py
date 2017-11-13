@@ -7,10 +7,9 @@ Module containing mapping from strings to classes
 contains rhbp components, rhbp utils, rhbp_selforga, so_data
 """
 
-from behaviour_components.activators import MultiSensorCondition, \
-    PublisherCondition, BooleanActivator, ThresholdActivator, GreedyActivator, \
+from behaviour_components.activators import BooleanActivator, ThresholdActivator, GreedyActivator, \
     LinearActivator
-from behaviour_components.conditions import Disjunction, Conjunction, Negation
+from behaviour_components.conditions import Disjunction, Conjunction, Negation, MultiSensorCondition, PublisherCondition
 from behaviour_components.goals import GoalBase, OfflineGoal, PublisherGoal
 from behaviour_components.sensors import PassThroughTopicSensor, \
     SimpleTopicSensor, DynamicSensor
