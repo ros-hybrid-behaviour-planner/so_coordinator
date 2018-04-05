@@ -11,8 +11,8 @@ from behaviour_components.activators import BooleanActivator, ThresholdActivator
     LinearActivator
 from behaviour_components.conditions import Disjunction, Conjunction, Negation, MultiSensorCondition, PublisherCondition
 from behaviour_components.goals import GoalBase, OfflineGoal, PublisherGoal
-from behaviour_components.sensors import PassThroughTopicSensor, \
-    SimpleTopicSensor, DynamicSensor
+from behaviour_components.sensors import RawTopicSensor, \
+    TopicSensor, DynamicSensor, PassThroughTopicSensor, SimpleTopicSensor
 
 from rhbp_utils.knowledge_sensors import KnowledgeSensor, KnowledgeFactSensor
 
@@ -58,6 +58,8 @@ SO_MAPPING = {
     'OfflineGoal': OfflineGoal,
     'PublisherGoal': PublisherGoal,
     # Sensors
+    'RawTopicSensor': RawTopicSensor,
+    'TopicSensor': TopicSensor,
     'PassThroughTopicSensor': PassThroughTopicSensor,
     'SimpleTopicSensor': SimpleTopicSensor,
     'DynamicSensor': DynamicSensor,
