@@ -1,7 +1,7 @@
 """
 Created on 24.03.2017
 
-@author: kaiser
+@author: kaiser, hrabia
 
 Module containing mapping from strings to classes
 contains rhbp components, rhbp utils, rhbp_selforga, so_data
@@ -9,17 +9,16 @@ contains rhbp components, rhbp utils, rhbp_selforga, so_data
 
 from behaviour_components.activators import BooleanActivator, ThresholdActivator, GreedyActivator, \
     LinearActivator
-from behaviour_components.conditions import Disjunction, Conjunction, Negation, MultiSensorCondition, PublisherCondition
+from behaviour_components.conditions import Disjunction, Conjunction, Negation, PublisherCondition
 from behaviour_components.goals import GoalBase, OfflineGoal, PublisherGoal
 from behaviour_components.sensors import RawTopicSensor, \
     TopicSensor, DynamicSensor, PassThroughTopicSensor, SimpleTopicSensor
 
-from rhbp_utils.knowledge_sensors import KnowledgeSensor, KnowledgeFactSensor
+from rhbp_utils.knowledge_sensors import KnowledgeSensor, KnowledgeFactSensor, KnowledgeFirstFactSensor
 
 from rhbp_selforga.behaviours import MoveBehaviour, TurnBehaviour, \
     DecisionBehaviour, DecisionStateBehaviour, SetStateBehaviour
-from rhbp_selforga.conditions import ChangeFloatCondition, \
-    ChangeStringCondition, BoolTCondition, BoolFCondition, VectorBoolCondition,\
+from rhbp_selforga.conditions import ChangeKBFloatCondition, ChangeKBStringCondition, BoolTCondition, BoolFCondition, VectorBoolCondition,\
     GoalBoolCondition, MaxDistCondition, VectorDistCondition, \
     GradientBoolCondition
 from rhbp_selforga.gradientsensor import GradientSensor, SENSOR
@@ -43,7 +42,6 @@ SO_MAPPING = {
 
     # RHBP COMPONENTS
     # Activators
-    'MultiSensorCondition': MultiSensorCondition,
     'PublisherCondition': PublisherCondition,
     'BooleanActivator': BooleanActivator,
     'ThresholdActivator': ThresholdActivator,
@@ -68,6 +66,7 @@ SO_MAPPING = {
     # knowledge sensors
     'KnowledgeSensor': KnowledgeSensor,
     'KnowledgeFactSensor': KnowledgeFactSensor,
+    'KnowledgeFirstFactSensor': KnowledgeFirstFactSensor,
 
     # RHBP_SELFORGA COMPONENTS
     # Behaviours
@@ -77,8 +76,8 @@ SO_MAPPING = {
     'DecisionStateBehaviour': DecisionStateBehaviour,
     'SetStateBehaviour': SetStateBehaviour,
     # Conditions
-    'ChangeFloatCondition': ChangeFloatCondition,
-    'ChangeStringCondition': ChangeStringCondition,
+    'ChangeKBFloatCondition': ChangeKBFloatCondition,
+    'ChangeKBStringCondition': ChangeKBStringCondition,
     'BoolTCondition': BoolTCondition,
     'BoolFCondition': BoolFCondition,
     'VectorBoolCondition': VectorBoolCondition,

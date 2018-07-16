@@ -1,0 +1,5 @@
+<!-- Tests the fact cache -->
+<launch>
+    <node pkg="knowledge_base" type="knowledge_base_node.py" name ="knowledgeBaseNode" />
+    <test pkg="so_coordinator" type="test_specification_creation.py" test-name="specification_test_node"/>
+</launch>

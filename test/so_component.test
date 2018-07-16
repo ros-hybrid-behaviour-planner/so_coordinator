@@ -1,0 +1,4 @@
+<!-- Tests the fact cache -->
+<launch>
+    <test pkg="so_coordinator" type="so_components_test.py" test-name="so_coordinator_test_node"/>
+</launch>

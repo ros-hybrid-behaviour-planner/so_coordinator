@@ -1,7 +1,8 @@
+#!/usr/bin/env python
 """
 Created on 13.04.2017
 
-@author: kaiser
+@author: kaiser, hrabia
 
 Module containing unit test for creation of specified components
 """
@@ -9,6 +10,7 @@ Module containing unit test for creation of specified components
 import os
 import rospy
 import unittest
+import rostest
 from behaviour_components.managers import Manager
 from so_coordinator.so_components import create_from_yaml, SOComponents
 from so_coordinator.so_mapping import SO_MAPPING
@@ -18,6 +20,26 @@ class TestConfigurationCreation(unittest.TestCase):
     """
     unit test to test if all configurations are created without errors
     """
+
+    def __init__(self, *args, **kwargs):
+        super(TestConfigurationCreation, self).__init__(*args, **kwargs)
+
+    @classmethod
+    def setUpClass(self):
+        rospy.init_node('TestConfigurationCreation_node')
+        TestConfigurationCreation.m = Manager()
+        # Wait for manager becoming available
+        while True:
+            try:
+                rospy.wait_for_service('/AddBehaviour', timeout=0.1)
+            except rospy.ROSException:
+                rospy.sleep(1)
+                continue
+            break
+
+    @classmethod
+    def tearDownClass(self):
+        TestConfigurationCreation.m.unregister()
 
     def test_chemotaxisge(self):
         """
@@ -195,6 +217,4 @@ class TestConfigurationCreation(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    rospy.init_node('test')
-    m = Manager()
-    unittest.main()
+    rostest.rosrun("so_coordinator", 'TestConfigurationCreation', TestConfigurationCreation)

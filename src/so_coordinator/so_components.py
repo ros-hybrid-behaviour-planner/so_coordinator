@@ -155,7 +155,7 @@ class SOComponents(object):
             if 'sensor' in conditions[c][1].keys():
                 conditions[c][1]['sensor'] = self.sensors[conditions[c][1]
                                                           ['sensor']]
-            # Multi-Sensor-Conditions
+            # Conditions accepting multiple sensors
             elif 'sensors' in conditions[c][1].keys():
                 conditions[c][1]['sensors'] = [self.sensors[s] for s in
                                                conditions[c][1]['sensors']]
@@ -215,7 +215,7 @@ class SOComponents(object):
         preconds = specs.get('preconditions')
         for p in preconds.keys():
             for e in preconds[p]:
-                self.behaviours[p].addPrecondition(self.create_condition(e))
+                self.behaviours[p].add_precondition(self.create_condition(e))
 
         # create goals
         goals = specs.get('goals')
