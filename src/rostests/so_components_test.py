@@ -16,7 +16,7 @@ from behaviour_components.activators import BooleanActivator, LinearActivator
 from behaviour_components.conditions import Conjunction, Negation
 from behaviour_components.goals import GoalBase
 from rhbp_selforga.behaviours import MoveBehaviour, DecisionBehaviour
-from rhbp_selforga.conditions import VectorDistCondition, VectorBoolCondition, ChangeCondition
+from rhbp_selforga.conditions import VectorDistCondition, VectorBoolCondition, ChangeKBFloatCondition
 from rhbp_selforga.gradientsensor import GradientSensor
 from so_data.chemotaxis import ChemotaxisGe
 from so_data.sobuffer import SoBuffer
@@ -73,7 +73,7 @@ class SoComponentsTest(unittest.TestCase):
                                            {'sensor': 's_dist',
                                             'activator': 'a_lin',
                                             'optional': True}],
-                                'c_morph': ['ChangeCondition',
+                                'c_morph': ['ChangeKBFloatCondition',
                                             {'sensors': ['s_goal', 's_dist'],
                                              'activator': 'a_bool'}]},
                  'behaviours': {'b_chem': ['MoveBehaviour',
@@ -188,7 +188,7 @@ class SoComponentsTest(unittest.TestCase):
 
         # Multi Sensor Condition
         self.assertTrue(isinstance(self.components.conditions['c_morph'],
-                                   ChangeCondition),
+                                   ChangeKBFloatCondition),
                         "Not the correct object")
         self.assertEqual(self.components.conditions['c_morph'].sensors,
                          [self.components.sensors['s_goal'],
