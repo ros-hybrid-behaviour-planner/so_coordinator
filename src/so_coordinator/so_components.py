@@ -208,7 +208,7 @@ class SOComponents(object):
 
             self.behaviours[b] = self.mapping.get(behaviours[b][0])(
                 name=b + self.name + self.id + 'behaviour',
-                plannerPrefix=self.planner_prefix,
+                planner_prefix=self.planner_prefix,
                 **behaviours[b][1])
 
         # add preconditions
@@ -230,7 +230,7 @@ class SOComponents(object):
 
             self.goals[g] = self.mapping.get(goals[g][0])(
                 name=g + self.name + self.id + 'goal',
-                plannerPrefix=self.planner_prefix,
+                planner_prefix=self.planner_prefix,
                 **goals[g][1])
 
     def create_condition(self, lst):
