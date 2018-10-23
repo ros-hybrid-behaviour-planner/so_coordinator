@@ -28,7 +28,7 @@ class SoCoordinator(NetworkBehaviour):
                  decision=DecisionStrategy,
                  components_class=SOComponents,
                  mapping=SO_MAPPING,
-                 requires_execution_steps=False,
+                 requires_execution_steps=True,
                  params=None, optional_params=None, **kwargs):
 
         """
@@ -66,12 +66,8 @@ class SoCoordinator(NetworkBehaviour):
         self.id = id
 
         # init parent class (NetworkBehaviour)
-        super(SoCoordinator, self).__init__(name=name,
-                                            requires_execution_steps=
-                                            requires_execution_steps,
-                                            correlations=correlations,
-                                            always_update_activation=True,
-                                            **kwargs)
+        super(SoCoordinator, self).__init__(name=name, requires_execution_steps=requires_execution_steps,
+                                            correlations=correlations, always_update_activation=True, **kwargs)
 
         # Coordination Mechanism Selection
 

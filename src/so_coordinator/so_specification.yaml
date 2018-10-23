@@ -169,7 +169,7 @@ ExplorationChemotaxisGe: {
                m_rep: [CollisionAvoidance, {buffer: 'bf_ex', moving: True, static: False, maxvel: 0.5, frames: ['robot']}]},
   activators: { a_bool: [BooleanActivator, {} ] },
   sensors: {s_grad: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}],
-            s_grad_reached: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal, initial_value: True}] },
+            s_grad_reached: [GradientSensor, {mechanism: 'm_chem', sensor_type: goal}] },
   conditions: {c_grad: [VectorBoolCondition, {sensor: 's_grad', activator: 'a_bool'}],
                c_grad_reached: [GoalBoolCondition, {sensor: 's_grad_reached', activator: 'a_bool'}] },
   behaviours: {b_chem: [MoveBehaviour, {mechanism: 'm_chem', param_keys: [motion_topic], effects: [['c_grad_reached', 1.0, bool]]}],
